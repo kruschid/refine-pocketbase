@@ -1,6 +1,6 @@
 {
   "name": "refine-pocketbase",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "https://github.com/kruschid",
   "source": "src/index.ts",
   "module": "build/index.mjs",
