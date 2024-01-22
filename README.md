@@ -1,5 +1,9 @@
 # refine-pocketbase
 
+[Pocketbase](https://pocketbase.io/) providers for [Refine](https://refine.dev/).
+
+## features
+
 - [x] auth provider
   - [x] login with password
   - [x] login with provider
@@ -13,7 +17,7 @@
   - [x] subscribe
   - [x] unsubscribe  
 
-## Installation
+## installation
 
 ``` sh
 yarn add refine-pocketbase
@@ -21,23 +25,16 @@ yarn add refine-pocketbase
 npm install reifne-pocketbase
 ```
 
-## Basic Usage
+## basic usage
 
 ``` tsx
 import PocketBase from "pocketbase";
-import { authProvider, dataProvider, liveProvider, AuthOptions } from "refine-pocketbase";
+import { authProvider, dataProvider, liveProvider } from "refine-pocketbase";
 
 const pb = new PocketBase(API_URL);
 
-const options: AuthOptions = {
-  loginRedirectTo: "/",
-  loginErrorRedirectTo: "/login",
-  logoutRedirectTo: "/login",
-  unauthenticatedRedirectTo: "/login",
-}
-
 <Refine
-  authProvider={authProvider(pb, options)}
+  authProvider={authProvider(pb)}
   dataProvider={dataProvider(pb)}
   liveProvider={liveProvider(pb)}
   ...
@@ -45,3 +42,11 @@ const options: AuthOptions = {
   ...
 </Refine>
 ```
+
+## contribute
+
+- leave a star
+- report a bug
+- open a pull request
+- help others
+- [buy me a coffee ☕](https://www.buymeacoffee.com/kruschid)

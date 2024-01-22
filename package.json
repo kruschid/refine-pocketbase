@@ -1,5 +1,6 @@
 {
   "name": "refine-pocketbase",
+  "description": "pocket base providers for refine",
   "version": "0.0.2",
   "author": "https://github.com/kruschid",
   "source": "src/index.ts",
@@ -29,5 +30,9 @@
   "keywords": [
     "refine",
     "pocketbase"
-  ]
+  ],
+  "funding": {
+    "type": "individual",
+    "url": "https://www.buymeacoffee.com/kruschid"
+  }
 }
