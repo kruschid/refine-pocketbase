@@ -1,23 +1,24 @@
 # refine-pocketbase
 
-[Pocketbase](https://pocketbase.io/) providers for [Refine](https://refine.dev/).
+[PocketBase](https://pocketbase.io/) providers for [Refine](https://refine.dev/).
 
-## features
+## Features
 
 - [x] auth provider
+  - [x] register
   - [x] login with password
   - [x] login with provider
-  - [ ] forgot/reset password
-  - [ ] register
+  - [x] forgot password
+  - [x] update password
 - [x] data provider
   - [x] filters
   - [x] sorters
-  - [x] server side pagination 
+  - [x] pagination 
 - [x] live provider
   - [x] subscribe
   - [x] unsubscribe  
 
-## installation
+## Installation
 
 ``` sh
 yarn add refine-pocketbase
@@ -25,7 +26,7 @@ yarn add refine-pocketbase
 npm install reifne-pocketbase
 ```
 
-## basic usage
+## Basic Usage
 
 ``` tsx
 import PocketBase from "pocketbase";
@@ -43,10 +44,31 @@ const pb = new PocketBase(API_URL);
 </Refine>
 ```
 
-## contribute
+## Contribute
 
 - leave a star
 - report a bug
 - open a pull request
 - help others
 - [buy me a coffee ☕](https://www.buymeacoffee.com/kruschid)
+
+<a href="https://www.buymeacoffee.com/kruschid" target="_blank"><img width="200px" src="https://cdn.buymeacoffee.com/buttons/v2/default-orange.png" alt="Buy Me A Coffee" ></a>
+
+## Auth Provider Options
+
+``` ts
+interface AuthOptions {
+  collection: string;
+  requestVerification: boolean;
+  registerRedirectTo?: string;
+  registerErrorRedirectTo?: string;
+  forgotPasswordRedirectTo?: string;
+  forgotPasswordErrorRedirectTo?: string;
+  updatePasswordRedirectTo?: string;
+  updatePasswordErrorRedirectTo?: string;
+  loginRedirectTo?: string;
+  loginErrorRedirectTo?: string;
+  logoutRedirectTo?: string;
+  unauthenticatedRedirectTo?: string;
+}
+```
