@@ -1,0 +1,10 @@
+version: "3.7"
+
+services:
+  pocketbase:
+    image: spectado/pocketbase:0.21.1
+    restart: unless-stopped
+    ports:
+      - 8090:80
+    volumes:
+      - ./pb_migrations:/pb_migrations
