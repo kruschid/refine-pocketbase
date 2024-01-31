@@ -4,7 +4,7 @@
   "repository": "https://github.com/kruschid/refine-pocketbase.git",
   "author": "Denis Kruschinski <4989565+kruschid@users.noreply.github.com>",
   "license": "MIT",
-  "private": false,
+  "private": true,
   "workspaces": [
     "demo",
     "lib"
