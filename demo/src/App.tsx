@@ -3,7 +3,7 @@ import { HeadlessCreateInferencer, HeadlessEditInferencer, HeadlessListInference
 import routerBindings, { DocumentTitleHandler, NavigateToResource, UnsavedChangesNotifier } from "@refinedev/react-router-v6";
 import PocketBase from "pocketbase";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
-import { authProvider, dataProvider, liveProvider } from "../src";
+import { authProvider, dataProvider, liveProvider } from "refine-pocketbase";
 import { Layout } from "./Layout";
 import { POCKETBASE_URL } from "./config";
 
@@ -37,29 +37,21 @@ export const App = () =>
       }}
     >
       <Routes>
-        <Route
-          element={
-            <Layout>
-              <Outlet />
-            </Layout>
-          }
-        >
-          <Route
-            index
-            element={<NavigateToResource resource="posts" />}
-          />
-          <Route path="/posts">
-            <Route index element={<HeadlessListInferencer />} />
-            <Route path="create" element={<HeadlessCreateInferencer />} />
-            <Route path="edit/:id" element={<HeadlessEditInferencer />} />
-            <Route path="show/:id" element={<HeadlessShowInferencer />} />
-          </Route>
-          <Route path="/register" element={<AuthPage type="register" />} />
-          <Route path="/login" element={<AuthPage type="login" />} />
-          <Route path="/forgot-password" element={<AuthPage type="forgotPassword" />} />
-          <Route path="/update-password" element={<AuthPage type="updatePassword" />} />
-          <Route path="*" element={<ErrorComponent />} />
+        {/* <Route
+          index
+          element={<NavigateToResource resource="posts" />}
+        /> */}
+        <Route path="/posts">
+          <Route index element={<HeadlessListInferencer resource="posts" />} />
+          <Route path="create" element={<HeadlessCreateInferencer resource="posts" />} />
+          <Route path="edit/:id" element={<HeadlessEditInferencer resource="posts" />} />
+          <Route path="show/:id" element={<HeadlessShowInferencer resource="posts" />} />
         </Route>
+        <Route path="/register" element={<AuthPage type="register" />} />
+        <Route path="/login" element={<AuthPage type="login" />} />
+        <Route path="/forgot-password" element={<AuthPage type="forgotPassword" />} />
+        <Route path="/update-password" element={<AuthPage type="updatePassword" />} />
+        <Route path="*" element={<ErrorComponent />} />
       </Routes>
       <UnsavedChangesNotifier />
       <DocumentTitleHandler />

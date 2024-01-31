@@ -1,2 +1,1 @@
-export const POCKETBASE_URL =
-  process.env.POCKETBASE_URL ?? "http://localhost:8080";
+export const POCKETBASE_URL = "http://localhost:8090";
