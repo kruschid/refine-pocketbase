@@ -1,0 +1,49 @@
+{
+  "name": "refine-pocketbase",
+  "description": "pocket base providers for refine",
+  "version": "0.0.2",
+  "author": "https://github.com/kruschid",
+  "source": "src/index.ts",
+  "module": "build/index.mjs",
+  "main": "build/index.cjs",
+  "types": "build/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "test": "node -r ts-node/register src/test.ts",
+    "build": "yarn test && parcel build",
+    "demo": "parcel demo/index.html"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@parcel/packager-ts": "2.11.0",
+    "@parcel/transformer-typescript-types": "2.11.0",
+    "@refinedev/cli": "^2.16.22",
+    "@refinedev/core": "^4.46.2",
+    "@refinedev/inferencer": "^4.5.17",
+    "@refinedev/react-router-v6": "^4.5.5",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "@types/tape": "^5.6.4",
+    "parcel": "^2.11.0",
+    "pocketbase": "^0.20.3",
+    "process": "^0.11.10",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.21.3",
+    "tape": "^5.7.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {},
+  "keywords": [
+    "refine",
+    "pocketbase"
+  ],
+  "funding": {
+    "type": "individual",
+    "url": "https://www.buymeacoffee.com/kruschid"
+  }
+}
