@@ -32,7 +32,7 @@ npm install reifne-pocketbase
 import PocketBase from "pocketbase";
 import { authProvider, dataProvider, liveProvider } from "refine-pocketbase";
 
-const pb = new PocketBase(API_URL);
+const pb = new PocketBase(POCKETBASE_URL);
 
 <Refine
   authProvider={authProvider(pb)}
@@ -57,18 +57,16 @@ const pb = new PocketBase(API_URL);
 ## Auth Provider Options
 
 ``` ts
-interface AuthOptions {
-  collection: string;
-  requestVerification: boolean;
-  registerRedirectTo?: string;
-  registerErrorRedirectTo?: string;
-  forgotPasswordRedirectTo?: string;
-  forgotPasswordErrorRedirectTo?: string;
-  updatePasswordRedirectTo?: string;
-  updatePasswordErrorRedirectTo?: string;
-  loginRedirectTo?: string;
-  loginErrorRedirectTo?: string;
-  logoutRedirectTo?: string;
-  unauthenticatedRedirectTo?: string;
-}
+import { authProvider, AuthOptions } from "refine-pocketbase";
+
+const authOptions: AuthOptions = {
+  loginRedirectTo: "/dashboard",
+};
+
+<Refine
+  authProvider={authProvider(pb, authOptions)}
+  ...
+>
+  ...
+</Refine>
 ```
