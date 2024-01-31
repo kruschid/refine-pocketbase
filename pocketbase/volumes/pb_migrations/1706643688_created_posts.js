@@ -50,11 +50,11 @@ migrate(
         },
       ],
       indexes: [],
-      listRule: null,
-      viewRule: null,
-      createRule: null,
-      updateRule: null,
-      deleteRule: null,
+      listRule: "",
+      viewRule: "",
+      createRule: "",
+      updateRule: "",
+      deleteRule: "",
       options: {},
     });
 

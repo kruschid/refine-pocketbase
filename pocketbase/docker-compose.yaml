@@ -7,4 +7,4 @@ services:
     ports:
       - 8090:80
     volumes:
-      - ./pb_migrations:/pb_migrations
+      - ./volumes/pb_migrations:/pb_migrations
