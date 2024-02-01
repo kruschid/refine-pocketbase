@@ -8,3 +8,9 @@ services:
       - 8090:80
     volumes:
       - ./volumes/pb_migrations:/pb_migrations
+  inbucket:
+    image: inbucket/inbucket:3.0.3
+    ports:
+      - 9000:9000
+      - 2500:2500
+      - 1100:1100
