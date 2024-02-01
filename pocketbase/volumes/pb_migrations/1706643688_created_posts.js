@@ -23,31 +23,6 @@ migrate(
             pattern: "",
           },
         },
-        {
-          system: false,
-          id: "3xyfauct",
-          name: "content",
-          type: "editor",
-          required: false,
-          presentable: false,
-          unique: false,
-          options: {
-            convertUrls: false,
-          },
-        },
-        {
-          system: false,
-          id: "vqky88vl",
-          name: "date",
-          type: "date",
-          required: false,
-          presentable: false,
-          unique: false,
-          options: {
-            min: "",
-            max: "",
-          },
-        },
       ],
       indexes: [],
       listRule: "",
@@ -58,7 +33,18 @@ migrate(
       options: {},
     });
 
-    return Dao(db).saveCollection(collection);
+    new Dao(db).saveCollection(collection);
+
+    new Dao(db).saveRecord(
+      new Record(collection, {
+        title: "first entry",
+      })
+    );
+    new Dao(db).saveRecord(
+      new Record(collection, {
+        title: "second entry",
+      })
+    );
   },
   (db) => {
     const dao = new Dao(db);
