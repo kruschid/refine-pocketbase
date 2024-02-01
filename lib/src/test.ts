@@ -1,8 +1,5 @@
 import test from "tape";
-import {
-  extractFilterValues,
-  extractFilterExpression,
-} from "./dataProvider.js";
+import { extractFilterValues, extractFilterExpression } from "./utils.js";
 
 test("stringifyFilters", (t) => {
   t.equals(

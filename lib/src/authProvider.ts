@@ -1,5 +1,6 @@
 import { AuthBindings } from "@refinedev/core";
 import type PocketBase from "pocketbase";
+import { isClientResponseError, toHttpError } from "./utils";
 
 export interface LoginWithProvider {
   providerName: string;
@@ -13,8 +14,8 @@ export interface LoginWithPassword {
 export type LoginOptions = LoginWithProvider | LoginWithPassword;
 
 export interface AuthOptions {
-  collection: string;
-  requestVerification: boolean;
+  collection?: string;
+  requestVerification?: boolean;
   registerRedirectTo?: string;
   registerErrorRedirectTo?: string;
   forgotPasswordRedirectTo?: string;
@@ -28,7 +29,12 @@ export interface AuthOptions {
   unauthenticatedRedirectTo?: string;
 }
 
-const defaultOptions: AuthOptions = {
+type RequiredAuthOptions = Pick<
+  Required<AuthOptions>,
+  "collection" | "requestVerification"
+>;
+
+const defaultOptions: RequiredAuthOptions = {
   collection: "users",
   requestVerification: false,
 };
@@ -38,21 +44,31 @@ const isLoginWithProvider = (x: any): x is LoginWithProvider =>
 
 export const authProvider = (
   pb: PocketBase,
-  authOptions?: Partial<AuthOptions>
+  authOptions?: AuthOptions
 ): AuthBindings => {
-  const options: AuthOptions = { ...defaultOptions, ...authOptions };
+  const options: RequiredAuthOptions & AuthOptions = {
+    ...defaultOptions,
+    ...authOptions,
+  };
 
   return {
-    register: async ({ email, password }) => {
+    register: async ({ email, password, username, name }) => {
       try {
-        await pb.collection(options.collection).create({
-          email,
-          password,
-          passwordConfirm: password,
-        });
+        await pb.collection(options.collection).create(
+          {
+            email,
+            username,
+            name,
+            password,
+            passwordConfirm: password,
+          },
+          { requestKey: null }
+        );
 
         if (options.requestVerification) {
-          await pb.collection(options.collection).requestVerification(email);
+          await pb
+            .collection(options.collection)
+            .requestVerification(email, { requestKey: null });
         }
         return {
           success: true,
@@ -61,13 +77,16 @@ export const authProvider = (
       } catch (err) {
         return {
           success: false,
+          error: isClientResponseError(err) ? toHttpError(err) : undefined,
           redirectTo: options.registerErrorRedirectTo,
         };
       }
     },
     forgotPassword: async ({ email }) => {
       try {
-        await pb.collection(options.collection).requestPasswordReset(email);
+        await pb
+          .collection(options.collection)
+          .requestPasswordReset(email, { requestKey: null });
 
         return {
           success: true,
@@ -76,6 +95,7 @@ export const authProvider = (
       } catch (err) {
         return {
           success: false,
+          error: isClientResponseError(err) ? toHttpError(err) : undefined,
           redirectTo: options.forgotPasswordErrorRedirectTo,
         };
       }
@@ -84,7 +104,9 @@ export const authProvider = (
       try {
         await pb
           .collection(options.collection)
-          .confirmPasswordReset(token, password, confirmPassword);
+          .confirmPasswordReset(token, password, confirmPassword, {
+            requestKey: null,
+          });
 
         return {
           success: true,
@@ -93,40 +115,49 @@ export const authProvider = (
       } catch (err) {
         return {
           success: false,
+          error: isClientResponseError(err) ? toHttpError(err) : undefined,
           redirectTo: options.updatePasswordErrorRedirectTo,
         };
       }
     },
     login: async (loginOptions: LoginOptions) => {
-      if (isLoginWithProvider(loginOptions)) {
-        await pb
-          .collection(options.collection)
-          .authWithOAuth2({ provider: loginOptions.providerName });
-        if (pb.authStore.isValid) {
-          return {
-            success: true,
-            redirectTo: options.loginRedirectTo,
-          };
+      try {
+        if (isLoginWithProvider(loginOptions)) {
+          await pb
+            .collection(options.collection)
+            .authWithOAuth2({ provider: loginOptions.providerName });
+          if (pb.authStore.isValid) {
+            return {
+              success: true,
+              redirectTo: options.loginRedirectTo,
+            };
+          }
+        } else {
+          await pb
+            .collection(options.collection)
+            .authWithPassword(loginOptions.email, loginOptions.password, {
+              requestKey: null,
+            });
+          if (pb.authStore.isValid) {
+            return {
+              success: true,
+              redirectTo: options.loginRedirectTo,
+            };
+          }
         }
-      } else {
-        await pb
-          .collection(options.collection)
-          .authWithPassword(loginOptions.email, loginOptions.password);
-        if (pb.authStore.isValid) {
-          return {
-            success: true,
-            redirectTo: options.loginRedirectTo,
-          };
-        }
+      } catch (err) {
+        return {
+          success: false,
+          error: isClientResponseError(err) ? toHttpError(err) : undefined,
+          redirectTo: options.loginErrorRedirectTo,
+        };
       }
-
       return {
         success: false,
         error: {
-          name: "Login error",
-          message: "Invalid credentials",
+          name: "Login Error",
+          message: "Invalid email or password",
         },
-        redirectTo: options.loginErrorRedirectTo,
       };
     },
     logout: async () => {

@@ -1,11 +1,17 @@
 import {
-  ConditionalFilter,
-  CrudFilter,
-  CrudFilters,
+  CreateResponse,
   DataProvider,
-  HttpError,
+  GetListResponse,
+  GetOneResponse,
+  UpdateResponse,
 } from "@refinedev/core";
-import PocketBase, { ClientResponseError } from "pocketbase";
+import PocketBase from "pocketbase";
+import {
+  extractFilterExpression,
+  extractFilterValues,
+  isClientResponseError,
+  toHttpError,
+} from "./utils";
 
 export const dataProvider = (
   pb: PocketBase
@@ -29,24 +35,39 @@ export const dataProvider = (
 
     const collection = pb.collection(resource);
 
-    if (mode === "server") {
-      const { items, totalItems } = await collection.getList(
-        current,
-        pageSize,
-        { sort, filter }
-      );
+    try {
+      if (mode === "server") {
+        const { items, totalItems } = await collection.getList(
+          current,
+          pageSize,
+          {
+            ...(sort ? { sort } : {}),
+            ...(filter ? { filter } : {}),
+            requestKey: null,
+          }
+        );
 
-      return {
-        data: items as any,
-        total: totalItems,
-      };
-    } else {
-      const items = await collection.getFullList({ sort, filter });
+        return {
+          data: items,
+          total: totalItems,
+        } as GetListResponse<any>;
+      } else {
+        const items = await collection.getFullList({
+          sort,
+          filter,
+          requestKey: null,
+        });
 
-      return {
-        data: items,
-        total: items.length,
-      };
+        return {
+          data: items,
+          total: items.length,
+        } as GetListResponse<any>;
+      }
+    } catch (e: unknown) {
+      if (isClientResponseError(e)) {
+        throw toHttpError(e);
+      }
+      throw e;
     }
   },
 
@@ -56,7 +77,7 @@ export const dataProvider = (
         .collection(resource)
         .create(variables as Record<string, unknown>, { requestKey: null });
 
-      return { data } as any;
+      return { data } as CreateResponse<any>;
     } catch (e: unknown) {
       if (isClientResponseError(e)) {
         throw toHttpError(e);
@@ -69,9 +90,11 @@ export const dataProvider = (
     try {
       const data = await pb
         .collection(resource)
-        .update(id as string, variables as Record<string, any>);
+        .update(id as string, variables as Record<string, unknown>, {
+          requestKey: null,
+        });
 
-      return { data } as any;
+      return { data } as UpdateResponse<any>;
     } catch (e: unknown) {
       if (isClientResponseError(e)) {
         throw toHttpError(e);
@@ -81,94 +104,36 @@ export const dataProvider = (
   },
 
   getOne: async ({ resource, id }) => {
-    const data = await pb.collection(resource).getOne(id as string);
+    try {
+      const data = await pb
+        .collection(resource)
+        .getOne(id as string, { requestKey: null });
 
-    return { data } as any;
+      return { data } as GetOneResponse<any>;
+    } catch (e: unknown) {
+      if (isClientResponseError(e)) {
+        throw toHttpError(e);
+      }
+      throw e;
+    }
   },
 
   deleteOne: async ({ resource, id }) => {
-    const deleted = await pb.collection(resource).delete(id as string);
+    try {
+      const deleted = await pb
+        .collection(resource)
+        .delete(id as string, { requestKey: null });
 
-    return { data: deleted ? { id } : undefined } as any;
+      return { data: deleted ? { id } : undefined } as any;
+    } catch (e) {
+      if (isClientResponseError(e)) {
+        throw toHttpError(e);
+      }
+      throw e;
+    }
   },
 
   getApiUrl: () => {
     return pb.baseUrl;
   },
 });
-
-const OPERATOR_MAP = {
-  eq: "=",
-  ne: "!=",
-  lt: "<",
-  gt: ">",
-  lte: "<=",
-  gte: ">=",
-  in: "?=",
-  nin: "?!=",
-  contains: "~",
-  ncontains: "!~",
-  containss: "~",
-  ncontainss: "!~",
-  between: "",
-  nbetween: "",
-  null: "=",
-  nnull: "!=",
-  startswith: "~",
-  nstartswith: "!~",
-  startswiths: "~",
-  nstartswiths: "!~",
-  endswith: "~",
-  nendswith: "!~",
-  endswiths: "~",
-  nendswiths: "!~",
-  or: "||",
-  and: "&&",
-};
-
-const isClientResponseError = (x: any): x is ClientResponseError =>
-  typeof x.response === "object";
-
-const toHttpError = (e: ClientResponseError): HttpError => ({
-  message: e.message,
-  statusCode: e.status,
-  errors: Object.keys(e.response.data).reduce(
-    (acc, next) => ({
-      ...acc,
-      [next]: (e as ClientResponseError).response.data[next].message,
-    }),
-    {}
-  ),
-});
-
-const isConditionalFilter = (filter: CrudFilter): filter is ConditionalFilter =>
-  filter.operator === "and" || filter.operator === "or";
-
-export const extractFilterExpression = (
-  filters: CrudFilters,
-  joinOperator: ConditionalFilter["operator"] = "and",
-  pos = 0
-) =>
-  filters
-    .map((filter, i): string =>
-      isConditionalFilter(filter)
-        ? `(${extractFilterExpression(filter.value, filter.operator, i)})`
-        : `${filter.field} ${OPERATOR_MAP[filter.operator]} {:${
-            filter.field
-          }${pos}${i}}`
-    )
-    .join(` ${OPERATOR_MAP[joinOperator]} `);
-
-export const extractFilterValues = (
-  filters: CrudFilters,
-  pos = 0
-): Record<string, unknown> =>
-  filters.reduce(
-    (acc, filter, i) => ({
-      ...acc,
-      ...(isConditionalFilter(filter)
-        ? extractFilterValues(filter.value, i)
-        : { [filter.field + pos + i]: filter.value }),
-    }),
-    {}
-  );
