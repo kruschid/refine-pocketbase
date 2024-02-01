@@ -9,9 +9,8 @@
   "types": "build/index.d.ts",
   "type": "module",
   "scripts": {
-    "test": "node -r ts-node/register src/test.ts",
-    "build": "yarn test && parcel build",
-    "demo": "parcel demo/index.html"
+    "test": "node --import=tsimp/import src/test.ts",
+    "build": "yarn test && parcel build"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -25,7 +24,7 @@
     "parcel": "^2.11.0",
     "pocketbase": "^0.20.3",
     "tape": "^5.7.3",
-    "ts-node": "^10.9.2",
+    "tsimp": "^2.0.10",
     "typescript": "^5.3.3"
   },
   "dependencies": {},
