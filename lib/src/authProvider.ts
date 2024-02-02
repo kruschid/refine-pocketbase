@@ -1,4 +1,4 @@
-import { AuthBindings } from "@refinedev/core";
+import { AuthBindings, UpdatePasswordFormTypes } from "@refinedev/core";
 import type PocketBase from "pocketbase";
 import { isClientResponseError, toHttpError } from "./utils";
 
@@ -33,6 +33,8 @@ type RequiredAuthOptions = Pick<
   Required<AuthOptions>,
   "collection" | "requestVerification"
 >;
+
+export type UpdatePasswordProps = UpdatePasswordFormTypes & { token: string };
 
 const defaultOptions: RequiredAuthOptions = {
   collection: "users",
