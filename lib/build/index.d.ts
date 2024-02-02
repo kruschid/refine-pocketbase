@@ -1,4 +1,4 @@
-import { AuthBindings, DataProvider, LiveProvider } from "@refinedev/core";
+import { AuthBindings, UpdatePasswordFormTypes, DataProvider, LiveProvider } from "@refinedev/core";
 import PocketBase from "pocketbase";
 export interface LoginWithProvider {
     providerName: string;
@@ -24,6 +24,9 @@ export interface AuthOptions {
     authenticatedRedirectTo?: string;
     unauthenticatedRedirectTo?: string;
 }
+export type UpdatePasswordProps = UpdatePasswordFormTypes & {
+    token: string;
+};
 export const authProvider: (pb: PocketBase, authOptions?: AuthOptions) => AuthBindings;
 export const dataProvider: (pb: PocketBase) => Omit<Required<DataProvider>, "createMany" | "updateMany" | "deleteMany" | "custom" | "getMany">;
 export const liveProvider: (pb: PocketBase) => LiveProvider;
