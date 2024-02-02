@@ -35,5 +35,11 @@
   "funding": {
     "type": "individual",
     "url": "https://www.buymeacoffee.com/kruschid"
-  }
+  },
+  "files": [
+    "build",
+    "src",
+    "../README.md",
+    "../LICENSE"
+  ]
 }
