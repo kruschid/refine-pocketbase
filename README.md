@@ -61,7 +61,7 @@ const authOptions: AuthOptions = {
 </Refine>
 ```
 
-## Todo/PRs are Welcome List
+## Tasks: PRs Welcome!
 
 - [x] happy path test specs
   - [x] `authProvider`
