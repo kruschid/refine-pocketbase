@@ -46,7 +46,7 @@ export const App = () =>
         <Route element={
           <Authenticated
             key="authenticated-inner"
-            fallback={<CatchAllNavigate to="/login" />}
+            redirectOnFail="/login"
           >
             <Outlet />
           </Authenticated>
