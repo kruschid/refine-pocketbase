@@ -23,7 +23,7 @@
 ``` sh
 yarn add refine-pocketbase
 # or
-npm install reifne-pocketbase
+npm install refine-pocketbase
 ```
 
 ## Basic Usage
@@ -67,18 +67,18 @@ const authOptions: AuthOptions = {
   - [x] `authProvider`
   - [x] `dataProvider` (except for `deleteOne`)
   - [x] `liveProvider`
-- [] test specs for `authProvider` error conditions
-  - [] `register`
-  - [] `forgotPassword`
-  - [] `updatePassword`
-  - [] `login`
-- [] test specs for `dataProvider` error conditions
-  - [] `getList`
-  - [] `create`
-  - [] `update`
-  - [] `getOne`
-  - [] `deleteOne`
-- [] test specs for `deleteOne`
+- [ ] test specs for `authProvider` error conditions
+  - [ ] `register`
+  - [ ] `forgotPassword`
+  - [ ] `updatePassword`
+  - [ ] `login`
+- [ ] test specs for `dataProvider` error conditions
+  - [ ] `getList`
+  - [ ] `create`
+  - [ ] `update`
+  - [ ] `getOne`
+  - [ ] `deleteOne`
+- [ ] test specs for `deleteOne`
 
 ## Contribute
 
