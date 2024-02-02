@@ -1,7 +1,7 @@
 {
   "name": "refine-pocketbase",
   "description": "PocketBase auth, data & live providers for Refine",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "author": "https://github.com/kruschid",
   "source": "src/index.ts",
   "module": "build/index.mjs",
@@ -16,7 +16,8 @@
   "scripts": {
     "test": "node --import=tsimp/import src/test.ts",
     "build": "yarn test && parcel build",
-    "prepublishOnly": "yarn build && cp ../{README.md,LICENSE} ./build"
+    "prepublishOnly": "yarn build && cp ../{README.md,LICENSE} ./",
+    "postpublish": "rm  ./{README.md,LICENSE}"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -45,7 +46,7 @@
   "files": [
     "build",
     "src",
-    "build/README.md",
-    "build/LICENSE"
+    "README.md",
+    "LICENSE"
   ]
 }
