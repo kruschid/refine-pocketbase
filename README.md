@@ -69,9 +69,9 @@ const authOptions: AuthOptions = {
   - [x] `dataProvider` (except for `deleteOne`)
   - [x] `liveProvider`
 - [ ] test specs for `authProvider` error conditions
-  - [ ] `register`
-  - [ ] `forgotPassword`
-  - [ ] `updatePassword`
+  - [x] `register`
+  - [x] `forgotPassword`
+  - [x] `updatePassword`
   - [ ] `login`
 - [ ] test specs for `dataProvider` error conditions
   - [ ] `getList`
