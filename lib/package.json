@@ -1,7 +1,7 @@
 {
   "name": "refine-pocketbase",
   "description": "PocketBase auth, data & live providers for Refine",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "author": "https://github.com/kruschid",
   "source": "src/index.ts",
   "module": "build/index.mjs",
