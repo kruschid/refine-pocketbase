@@ -80,6 +80,12 @@ const authOptions: AuthOptions = {
   - [ ] `getOne`
   - [ ] `deleteOne`
 - [ ] test specs for `deleteOne`
+- [ ] test specs with `expand`
+  - [ ] `getList`
+  - [ ] `getOne`
+- [ ] test specs with `fields`
+  - [ ] `getList`
+  - [ ] `getOne`
 
 ## Contribute
 

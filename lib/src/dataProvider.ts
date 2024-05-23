@@ -19,7 +19,7 @@ export const dataProvider = (
   Required<DataProvider>,
   "createMany" | "updateMany" | "deleteMany" | "custom" | "getMany"
 > => ({
-  getList: async ({ resource, pagination, filters, sorters }) => {
+  getList: async ({ resource, pagination, filters, sorters, meta }) => {
     const { current = 1, pageSize = 10, mode = "server" } = pagination ?? {};
 
     const sort = sorters
@@ -44,6 +44,8 @@ export const dataProvider = (
             ...(sort ? { sort } : {}),
             ...(filter ? { filter } : {}),
             requestKey: null,
+            expand: meta?.expand,
+            fields: meta?.fields?.join(","),
           }
         );
 
@@ -56,6 +58,7 @@ export const dataProvider = (
           sort,
           filter,
           requestKey: null,
+          expand: meta?.expand,
         });
 
         return {
@@ -103,11 +106,12 @@ export const dataProvider = (
     }
   },
 
-  getOne: async ({ resource, id }) => {
+  getOne: async ({ resource, id, meta }) => {
     try {
-      const data = await pb
-        .collection(resource)
-        .getOne(id as string, { requestKey: null });
+      const data = await pb.collection(resource).getOne(id as string, {
+        requestKey: null,
+        expand: meta?.expand,
+      });
 
       return { data } as GetOneResponse<any>;
     } catch (e: unknown) {
