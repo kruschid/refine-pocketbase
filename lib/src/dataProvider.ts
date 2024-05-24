@@ -5,7 +5,7 @@ import {
   GetOneResponse,
   UpdateResponse,
 } from "@refinedev/core";
-import PocketBase from "pocketbase";
+import PocketBase, { RecordListOptions } from "pocketbase";
 import {
   extractFilterExpression,
   extractFilterValues,
@@ -33,6 +33,14 @@ export const dataProvider = (
         )
       : undefined;
 
+    const options: RecordListOptions = {
+      requestKey: meta?.requestKey ?? null,
+      ...(sort ? { sort } : {}),
+      ...(filter ? { filter } : {}),
+      ...(meta?.expand ? { expand: meta?.expand } : {}),
+      ...(meta?.fields ? { fields: meta?.fields?.join(",") } : {}),
+    };
+
     const collection = pb.collection(resource);
 
     try {
@@ -40,13 +48,7 @@ export const dataProvider = (
         const { items, totalItems } = await collection.getList(
           current,
           pageSize,
-          {
-            ...(sort ? { sort } : {}),
-            ...(filter ? { filter } : {}),
-            requestKey: null,
-            expand: meta?.expand,
-            fields: meta?.fields?.join(","),
-          }
+          options
         );
 
         return {
@@ -54,12 +56,7 @@ export const dataProvider = (
           total: totalItems,
         } as GetListResponse<any>;
       } else {
-        const items = await collection.getFullList({
-          sort,
-          filter,
-          requestKey: null,
-          expand: meta?.expand,
-        });
+        const items = await collection.getFullList(options);
 
         return {
           data: items,
@@ -74,11 +71,13 @@ export const dataProvider = (
     }
   },
 
-  create: async ({ resource, variables }) => {
+  create: async ({ resource, variables, meta }) => {
     try {
       const data = await pb
         .collection(resource)
-        .create(variables as Record<string, unknown>, { requestKey: null });
+        .create(variables as Record<string, unknown>, {
+          requestKey: meta?.requestKey ?? null,
+        });
 
       return { data } as CreateResponse<any>;
     } catch (e: unknown) {
@@ -89,12 +88,12 @@ export const dataProvider = (
     }
   },
 
-  update: async ({ resource, id, variables }) => {
+  update: async ({ resource, id, variables, meta }) => {
     try {
       const data = await pb
         .collection(resource)
         .update(id as string, variables as Record<string, unknown>, {
-          requestKey: null,
+          requestKey: meta?.requestKey ?? null,
         });
 
       return { data } as UpdateResponse<any>;
@@ -109,8 +108,9 @@ export const dataProvider = (
   getOne: async ({ resource, id, meta }) => {
     try {
       const data = await pb.collection(resource).getOne(id as string, {
-        requestKey: null,
-        expand: meta?.expand,
+        requestKey: meta?.requestKey ?? null,
+        ...(meta?.expand ? { expand: meta?.expand } : {}),
+        ...(meta?.fields ? { fields: meta?.fields?.join(",") } : {}),
       });
 
       return { data } as GetOneResponse<any>;
@@ -122,11 +122,11 @@ export const dataProvider = (
     }
   },
 
-  deleteOne: async ({ resource, id }) => {
+  deleteOne: async ({ resource, id, meta }) => {
     try {
       const deleted = await pb
         .collection(resource)
-        .delete(id as string, { requestKey: null });
+        .delete(id as string, { requestKey: meta?.requestKey ?? null });
 
       return { data: deleted ? { id } : undefined } as any;
     } catch (e) {
