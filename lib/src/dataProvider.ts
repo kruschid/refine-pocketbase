@@ -37,7 +37,7 @@ export const dataProvider = (
       requestKey: meta?.requestKey ?? null,
       ...(sort ? { sort } : {}),
       ...(filter ? { filter } : {}),
-      ...(meta?.expand ? { expand: meta?.expand } : {}),
+      ...(meta?.expand ? { expand: meta?.join(",") } : {}),
       ...(meta?.fields ? { fields: meta?.fields?.join(",") } : {}),
     };
 
@@ -109,8 +109,8 @@ export const dataProvider = (
     try {
       const data = await pb.collection(resource).getOne(id as string, {
         requestKey: meta?.requestKey ?? null,
-        ...(meta?.expand ? { expand: meta?.expand } : {}),
-        ...(meta?.fields ? { fields: meta?.fields?.join(",") } : {}),
+        ...(meta?.expand ? { expand: meta?.expand.join(",") } : {}),
+        ...(meta?.fields ? { fields: meta?.fields.join(",") } : {}),
       });
 
       return { data } as GetOneResponse<any>;
