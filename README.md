@@ -14,10 +14,13 @@
 - [x] data provider
   - [x] filters
   - [x] sorters
-  - [x] pagination 
+  - [x] pagination
+  - [x] expand
+  - [x] filter
 - [x] live provider
   - [x] subscribe
-  - [x] unsubscribe  
+  - [x] unsubscribe
+- [ ] audit log provider
 
 ## Installation
 
@@ -64,10 +67,12 @@ const authOptions: AuthOptions = {
 
 ## Tasks: PRs Welcome!
 
-- [x] happy path test specs
+- [ ] `auditLogProvider` implementation 
+- [ ] happy path test specs
   - [x] `authProvider`
   - [x] `dataProvider` (except for `deleteOne`)
   - [x] `liveProvider`
+  - [ ] `auditLogProvider`
 - [ ] test specs for `authProvider` error conditions
   - [x] `register`
   - [x] `forgotPassword`
@@ -86,6 +91,7 @@ const authOptions: AuthOptions = {
 - [ ] test specs with `fields`
   - [ ] `getList`
   - [ ] `getOne`
+- [ ] test specs for `auditLogProvider` errors
 
 ## Contribute
 
