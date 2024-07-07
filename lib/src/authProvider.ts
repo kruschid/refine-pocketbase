@@ -185,12 +185,7 @@ export const authProvider = (
     getPermissions: async () => null,
     getIdentity: async () => {
       if (pb.authStore.isValid && pb.authStore.model) {
-        const { id, name, avatar } = pb.authStore.model;
-        return {
-          id,
-          name,
-          avatar,
-        };
+        return pb.authStore.model; // id, name, avatar, ...
       }
       return null;
     },
