@@ -49,6 +49,21 @@ Here `fields` is an array of strings limiting the fields to return in the server
 
 A couple of other refine hooks and components like `useOne`, `useTable`, `<Show/>`, `<List/>`, etc. will support the meta props `fields` and `expand` if used with the refine-pocketbase data provider.
 
+### Custom Endpoints with `useCustom` Hook
+
+The `useCustom` hook allows you to make custom API calls to your PocketBase backend. This is particularly useful when you need to interact with custom PocketBase endpoints.
+
+Here's an example of how to use the `useCustom` hook:
+``` ts
+const apiUrl = useApiUrl();
+
+const { data, isLoading } = useCustom({
+    url: `${apiUrl}/api/custom-endpoint`,
+    method: "get",
+  });
+```
+
+
 ## Auth Provider
 
 A number of configuration properties are supported by the auth provider, primarily for controlling redirection following specific auth events. Please take a look at the self-explanatory names in the `AuthOptions` typescript interface to find the available options.

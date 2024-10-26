@@ -149,9 +149,7 @@ export const dataProvider = (
         body: payload,
         query: query as Record<string, any>,
       };
-
-      const response = await pb.send(url, options);
-
+      const response = await pb.send(new URL(url).pathname, options);      
       return {
         data: response,
       } as CustomResponse<any>;
