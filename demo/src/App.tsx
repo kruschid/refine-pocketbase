@@ -9,6 +9,7 @@ import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { UpdatePasswordPage } from "./pages/UpdatePasswordPage";
+import { CustomPage } from "./pages/CustomPage";
 
 const pb = new PocketBase(POCKETBASE_URL);
 
@@ -40,6 +41,10 @@ export const App = () =>
             canDelete: true,
           },
         },
+        {
+          name: "custom",
+          list: "/custom",
+        },
       ]}
       options={{
         liveMode: "auto",
@@ -62,6 +67,7 @@ export const App = () =>
             index
             element={<NavigateToResource resource="posts" />}
           />
+          <Route index path="/custom" element={<CustomPage />} />
           <Route path="/posts">
             <Route index element={<HeadlessListInferencer resource="posts" />} />
             <Route path="create" element={<HeadlessCreateInferencer resource="posts" />} />
