@@ -9,6 +9,7 @@ const INBUCKET_URL = "http://localhost:9000";
 
 describe("auth provider", () => {
   it("register, login and reset password", () => {
+    cy.clearLocalStorage();
     cy.visit(URL);
     cy.get("a[href='/register']").click();
     cy.get("#register-email").type(EMAIL);

@@ -1,11 +1,12 @@
 import {
   CreateResponse,
+  CustomResponse,
   DataProvider,
   GetListResponse,
   GetOneResponse,
   UpdateResponse,
 } from "@refinedev/core";
-import PocketBase, { RecordListOptions } from "pocketbase";
+import PocketBase, { RecordListOptions, SendOptions } from "pocketbase";
 import {
   extractFilterExpression,
   extractFilterValues,
@@ -17,7 +18,7 @@ export const dataProvider = (
   pb: PocketBase
 ): Omit<
   Required<DataProvider>,
-  "createMany" | "updateMany" | "deleteMany" | "custom" | "getMany"
+  "createMany" | "updateMany" | "deleteMany" | "getMany"
 > => ({
   getList: async ({ resource, pagination, filters, sorters, meta }) => {
     const { current = 1, pageSize = 10, mode = "server" } = pagination ?? {};
@@ -37,7 +38,7 @@ export const dataProvider = (
       requestKey: meta?.requestKey ?? null,
       ...(sort ? { sort } : {}),
       ...(filter ? { filter } : {}),
-      ...(meta?.expand ? { expand: meta?.join(",") } : {}),
+      ...(meta?.expand ? { expand: meta?.expand.join(",") } : {}),
       ...(meta?.fields ? { fields: meta?.fields?.join(",") } : {}),
     };
 
@@ -139,5 +140,24 @@ export const dataProvider = (
 
   getApiUrl: () => {
     return pb.baseUrl;
+  },
+  custom: async ({ url, method, payload, query, headers }) => {
+    try {
+      const options: SendOptions = {
+        method: method,
+        headers: headers,
+        body: payload,
+        query: query as Record<string, any>,
+      };
+      const response = await pb.send(new URL(url).pathname, options);      
+      return {
+        data: response,
+      } as CustomResponse<any>;
+    } catch (e: unknown) {
+      if (isClientResponseError(e)) {
+        throw toHttpError(e);
+      }
+      throw e;
+    }
   },
 });

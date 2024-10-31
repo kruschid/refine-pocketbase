@@ -3,15 +3,16 @@ import { v4 as uuidv4 } from "uuid";
 import PocketBase from "pocketbase";
 
 const URL = "http://localhost:5173";
-const EMAIL = `test@example.com`;
+const EMAIL = `test-appuser@example.com`;
 const PASSWORD = "1234567890";
 
 const login = () => {
+  cy.clearLocalStorage();
   cy.visit(URL);
   cy.url().should("include", "/login");
-  cy.get("#email-input").type(EMAIL);
-  cy.get("#password-input").type(PASSWORD);
-  cy.get('[type="submit"]').click();
+  cy.get("#login-email").clear().type(EMAIL);
+  cy.get("#login-password").clear().type(PASSWORD);
+  cy.get('#login-submit').click();
   cy.url().should("include", "/posts");
 };
 
@@ -143,5 +144,16 @@ describe("data and live provider", () => {
       "contain.text",
       "updated title"
     );
+  });
+
+  it("custom hook", () => {
+    login();
+    cy.visit(`${URL}/custom`);
+
+    cy.get("h1").contains("Custom Page").should("exist");
+
+    cy.get("span").contains("ID: 1").should("exist");
+    cy.get("div").contains("Title: Custom Page Data").should("exist");
+    cy.get("div").contains("Description: This is some dummy content for the CustomPage in the demo application.").should("exist");
   });
 });

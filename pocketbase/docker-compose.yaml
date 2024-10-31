@@ -8,6 +8,8 @@ services:
       - 8090:80
     volumes:
       - ./volumes/pb_migrations:/pb_migrations
+      - ./volumes/pb_hooks:/pb_hooks
+    command: ["--dev"]
   inbucket:
     image: inbucket/inbucket:3.0.3
     ports:
