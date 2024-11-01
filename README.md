@@ -152,3 +152,24 @@ const authOptions: AuthOptions = {
 - [buy me a coffee ☕](https://www.buymeacoffee.com/kruschid)
 
 <a href="https://www.buymeacoffee.com/kruschid" target="_blank"><img width="200px" src="https://cdn.buymeacoffee.com/buttons/v2/default-orange.png" alt="Buy Me A Coffee" ></a>
+
+## Testing
+
+The GitHub Actions pipeline runs Cypress e2e in a Docker container. To debug them with the Cypress GUI in Docker on a Mac, the following commands will come in handy.
+
+``` sh
+open -a XQuartz
+
+IP=$(ipconfig getifaddr en0)
+
+/usr/X11/bin/xhost + $IP
+# 10.0.0.124 being added to access control list
+
+DISPLAY=$IP:0
+
+docker compose up cypress_x11
+```
+
+These commands come from the following tutorials
+- [Run Cypress with a single Docker command](https://www.cypress.io/blog/run-cypress-with-a-single-docker-command)
+- [GUI applications Docker Mac](https://sourabhbajaj.com/blog/2017/02/07/gui-applications-docker-mac/?ref=cypress-io.ghost.io)

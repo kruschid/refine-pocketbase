@@ -4,12 +4,12 @@ import routerBindings, { DocumentTitleHandler, NavigateToResource } from "@refin
 import PocketBase from "pocketbase";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import { AuthOptions, authProvider, dataProvider, liveProvider } from "refine-pocketbase";
-import { POCKETBASE_URL } from "./config";
+import { CustomPage } from "./pages/CustomPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { UpdatePasswordPage } from "./pages/UpdatePasswordPage";
-import { CustomPage } from "./pages/CustomPage";
+import { POCKETBASE_URL } from "./utils/config";
 
 const pb = new PocketBase(POCKETBASE_URL);
 

@@ -2,21 +2,22 @@
 import { v4 as uuidv4 } from "uuid";
 import PocketBase from "pocketbase";
 
-const URL = "http://localhost:5173";
+const DEMO_URL = Cypress.env("DEMO_URL") ?? "http://127.0.0.1:5173";
+const PB_URL = Cypress.env("PB_URL") ?? "http://127.0.0.1:8090";
 const EMAIL = `test-appuser@example.com`;
 const PASSWORD = "1234567890";
 
 const login = () => {
   cy.clearLocalStorage();
-  cy.visit(URL);
+  cy.visit(DEMO_URL);
   cy.url().should("include", "/login");
   cy.get("#login-email").clear().type(EMAIL);
   cy.get("#login-password").clear().type(PASSWORD);
-  cy.get('#login-submit').click();
+  cy.get("#login-submit").click();
   cy.url().should("include", "/posts");
 };
 
-const pb = new PocketBase("http://localhost:8090");
+const pb = new PocketBase(PB_URL);
 
 const posts = [
   { id: "sd2ku2su5qgffac", title: "first entry" },
@@ -42,13 +43,17 @@ describe("data and live provider", () => {
     login();
 
     // sort asc
-    cy.visit(`${URL}/posts?&sorters[0][field]=title&sorters[0][order]=asc`);
+    cy.visit(
+      `${DEMO_URL}/posts?&sorters[0][field]=title&sorters[0][order]=asc`
+    );
     cy.get("tbody > tr > :nth-child(4)").each((el, i) => {
       const orderedTitles = ["first entry", "second entry"];
       expect(el.text()).to.equal(orderedTitles[i]);
     });
     //sort desc
-    cy.visit(`${URL}/posts?&sorters[0][field]=title&sorters[0][order]=desc`);
+    cy.visit(
+      `${DEMO_URL}/posts?&sorters[0][field]=title&sorters[0][order]=desc`
+    );
     cy.get("tbody > tr > :nth-child(4)").each((el, i) => {
       const orderedTitles = ["second entry", "first entry"];
       expect(el.text()).to.equal(orderedTitles[i]);
@@ -56,7 +61,7 @@ describe("data and live provider", () => {
 
     // filter
     cy.visit(
-      `${URL}/posts?filters[0][field]=title&filters[0][operator]=contains&filters[0][value]=first`
+      `${DEMO_URL}/posts?filters[0][field]=title&filters[0][operator]=contains&filters[0][value]=first`
     );
     cy.get("tbody > tr").should("have.length", 1);
   });
@@ -105,14 +110,14 @@ describe("data and live provider", () => {
 
   it("pagination", () => {
     login();
-    cy.visit(`${URL}/posts?pageSize=1&current=1`);
+    cy.visit(`${DEMO_URL}/posts?pageSize=1&current=1`);
 
     cy.get("tbody > tr:first-child> :nth-child(4)").should(
       "contain.text",
       "first entry"
     );
 
-    cy.visit(`${URL}/posts?pageSize=1&current=2`);
+    cy.visit(`${DEMO_URL}/posts?pageSize=1&current=2`);
     cy.get("tbody > tr:first-child> :nth-child(4)").should(
       "contain.text",
       "second entry"
@@ -122,7 +127,9 @@ describe("data and live provider", () => {
   it("live updates", () => {
     login();
 
-    cy.visit(`${URL}/posts?&sorters[0][field]=title&sorters[0][order]=asc`);
+    cy.visit(
+      `${DEMO_URL}/posts?&sorters[0][field]=title&sorters[0][order]=asc`
+    );
 
     cy.get("tbody > tr")
       .should("have.length", 2)
@@ -148,12 +155,16 @@ describe("data and live provider", () => {
 
   it("custom hook", () => {
     login();
-    cy.visit(`${URL}/custom`);
+    cy.visit(`${DEMO_URL}/custom`);
 
     cy.get("h1").contains("Custom Page").should("exist");
 
     cy.get("span").contains("ID: 1").should("exist");
     cy.get("div").contains("Title: Custom Page Data").should("exist");
-    cy.get("div").contains("Description: This is some dummy content for the CustomPage in the demo application.").should("exist");
+    cy.get("div")
+      .contains(
+        "Description: This is some dummy content for the CustomPage in the demo application."
+      )
+      .should("exist");
   });
 });

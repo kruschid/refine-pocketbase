@@ -2,7 +2,7 @@
   "name": "refine-pocketbase",
   "description": "PocketBase auth, data & live providers for Refine",
   "version": "0.0.9",
-  "author": "https://github.com/kruschid",
+  "author": "Denis Kruschinski <4989565+kruschid@users.noreply.github.com>",
   "source": "src/index.ts",
   "module": "build/index.mjs",
   "main": "build/index.cjs",
@@ -15,8 +15,8 @@
   "homepage": "https://github/kruschid/refine-pocketbase",
   "scripts": {
     "test": "node --import=tsimp/import src/test.ts",
-    "build": "yarn test && parcel build",
-    "prepublishOnly": "yarn build && cp ../{README.md,LICENSE} ./",
+    "build": "npm run test && parcel build",
+    "prepublishOnly": "npm run build && cp ../{README.md,LICENSE} ./",
     "postpublish": "rm  ./{README.md,LICENSE}"
   },
   "engines": {
@@ -24,17 +24,16 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@parcel/packager-ts": "2.11.0",
-    "@parcel/transformer-typescript-types": "2.11.0",
+    "@parcel/packager-ts": "^2.12.0",
+    "@parcel/transformer-typescript-types": "^2.12.0",
     "@refinedev/core": "^4.46.2",
     "@types/tape": "^5.6.4",
-    "parcel": "^2.11.0",
+    "parcel": "^2.12.0",
     "pocketbase": "^0.20.3",
     "tape": "^5.7.3",
     "tsimp": "^2.0.10",
     "typescript": "^5.3.3"
   },
-  "dependencies": {},
   "keywords": [
     "refine",
     "pocketbase"

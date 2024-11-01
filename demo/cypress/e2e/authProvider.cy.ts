@@ -1,16 +1,17 @@
 /// <reference types="cypress" />
 import { v4 as uuidv4 } from "uuid";
 
-const URL = "http://localhost:5173";
-const EMAIL = `${uuidv4()}@example.com`;
+const DEMO_URL = Cypress.env("DEMO_URL") ?? "http://127.0.0.1:5173";
+const MAILBOX = uuidv4();
+const EMAIL = `${MAILBOX}@example.com`;
 const PASSWORD = "1234567890";
 const CHANGED_PASSWORD = "0987654321";
-const INBUCKET_URL = "http://localhost:9000";
+const INBUCKET_URL = Cypress.env("INBUCKET_URL") ?? "http://127.0.0.1:9000";
 
 describe("auth provider", () => {
-  it("register, login and reset password", () => {
+  it("register, login and reset password", async () => {
     cy.clearLocalStorage();
-    cy.visit(URL);
+    cy.visit(DEMO_URL);
     cy.get("a[href='/register']").click();
     cy.get("#register-email").type(EMAIL);
     cy.get("#register-password").type(PASSWORD);
@@ -23,7 +24,7 @@ describe("auth provider", () => {
 
     // register response contains errors
     cy.clearLocalStorage();
-    cy.visit(URL);
+    cy.visit(DEMO_URL);
     cy.get("a[href='/register']").click();
     cy.get("#register-email").type(EMAIL);
     cy.get("#register-password").type("123");
@@ -43,7 +44,7 @@ describe("auth provider", () => {
     );
 
     // password reset
-    cy.visit(URL);
+    cy.visit(DEMO_URL);
     cy.get("a[href='/forgot-password']").click();
 
     // error
@@ -63,12 +64,14 @@ describe("auth provider", () => {
     );
 
     // update password happy path
-    cy.visit(`${INBUCKET_URL}/monitor`);
-    cy.get("table.monitor tbody tr").first().click();
-    cy.get("article.message-body rendered-html")
-      .first()
-      .then((el) => {
-        cy.visit(`${URL}/update-password?token=${el.text().trim()}`);
+    cy.request(`${INBUCKET_URL}/api/v1/mailbox/${MAILBOX}`)
+      .then((res) =>
+        cy.request(
+          `${INBUCKET_URL}/api/v1/mailbox/${MAILBOX}/${res.body[0].id}`
+        )
+      )
+      .then((res) => {
+        cy.visit(`${DEMO_URL}/update-password?token=${res.body.body.text}`);
         cy.get("#password-input").type(CHANGED_PASSWORD);
         cy.get("#confirm-password-input").type(CHANGED_PASSWORD);
         cy.get('[type="submit"]').click();
@@ -80,7 +83,7 @@ describe("auth provider", () => {
       });
 
     // update password errors
-    cy.visit(`${URL}/update-password?token=invalid_token`);
+    cy.visit(`${DEMO_URL}/update-password?token=invalid_token`);
     cy.get("#password-input").type("123");
     cy.get("#confirm-password-input").type("321");
     cy.get('[type="submit"]').click();

@@ -3,3 +3,4 @@ dist
 .parcel-cache
 .env
 .tsimp
+*/cypress/**/*.png
