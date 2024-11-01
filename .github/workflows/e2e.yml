@@ -12,8 +12,8 @@ jobs:
 
     - name: Docker compose up
       run: |
-        docker-compose up -d demo pocketbasee inbucket
+        docker compose up -d demo pocketbasee inbucket
     
     - name: Run Cypress tests
       run: |
-        docker-compose up cypress
+        docker compose up cypress
