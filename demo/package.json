@@ -21,14 +21,13 @@
     "uuid": "^11.0.2"
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.6",
+    "@playwright/test": "^1.48.2",
     "@types/node": "^18.16.2",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "^5.57.1",
     "@typescript-eslint/parser": "^5.57.1",
     "@vitejs/plugin-react": "^4.0.0",
-    "cypress": "^13.15.1",
     "eslint": "^8.38.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.3.4",
