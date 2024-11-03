@@ -1,0 +1,17 @@
+services:
+  pocketbase:
+    container_name: pocketbase
+    image: spectado/pocketbase:0.21.1
+    ports:
+      - 8090:80
+    volumes:
+      - ./pocketbase/pb_migrations:/pb_migrations
+      - ./pocketbase/pb_hooks:/pb_hooks
+    command: ["--dev"]
+  
+  inbucket:
+    image: inbucket/inbucket:3.0.3
+    ports:
+      - 9000:9000
+      - 2500:2500
+      - 1100:1100
