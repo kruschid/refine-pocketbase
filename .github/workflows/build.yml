@@ -43,6 +43,11 @@ jobs:
         name: playwright-report
         path: demo/playwright-report/
         retention-days: 30
+    - name: Copy Readme and License
+      if: github.event_name == 'release'
+      working-directory: lib
+      run: cp ../{README.md,LICENSE} .
+      shell: bash
     - name: prerelease
       if: github.event_name == 'release' && github.event.release.prerelease
       working-directory: lib

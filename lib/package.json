@@ -15,9 +15,7 @@
   "homepage": "https://github/kruschid/refine-pocketbase",
   "scripts": {
     "test": "node --import=tsimp/import src/test.ts",
-    "build": "npm run test && parcel build",
-    "prepublishOnly": "npm run build && cp ../{README.md,LICENSE} ./",
-    "postpublish": "rm ./{README.md,LICENSE}"
+    "build": "npm run test && parcel build"
   },
   "engines": {
     "node": ">=20.0.0"
