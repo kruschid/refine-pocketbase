@@ -4,11 +4,23 @@ on:
     branches: [ main, dev ]
   pull_request:
     branches: [ main, dev ]
+  release:
+    types: [ published ]
 jobs:
-  test:
+  build_and_maybe_publish:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:
+    - name: Cache Docker layers
+      uses: actions/cache@v2
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-docker-${{ hashFiles('./demo/docker-compose.yml') }}
+    - name: Cache Node.js modules
+      uses: actions/cache@v2
+      with:
+        path: ~/.npm
+        key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
@@ -31,3 +43,10 @@ jobs:
         name: playwright-report
         path: demo/playwright-report/
         retention-days: 30
+    - name: publish
+      if: github.event_name == 'release'
+      run: |
+        npm publish {{ github.event.release.prerelease ? '--tag dev' : '' }}
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} 
+    
