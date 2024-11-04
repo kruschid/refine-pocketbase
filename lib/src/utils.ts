@@ -2,6 +2,7 @@ import {
   ConditionalFilter,
   CrudFilter,
   CrudFilters,
+  CrudOperators,
   HttpError,
 } from "@refinedev/core";
 import { ClientResponseError } from "pocketbase";
@@ -15,12 +16,14 @@ const OPERATOR_MAP = {
   gte: ">=",
   in: "?=",
   nin: "?!=",
+  ina: undefined,
+  nina: undefined,
   contains: "~",
   ncontains: "!~",
   containss: "~",
   ncontainss: "!~",
-  between: "",
-  nbetween: "",
+  between: undefined,
+  nbetween: undefined,
   null: "=",
   nnull: "!=",
   startswith: "~",
@@ -33,6 +36,14 @@ const OPERATOR_MAP = {
   nendswiths: "!~",
   or: "||",
   and: "&&",
+};
+
+const crudOperator = (op: Exclude<CrudOperators, "or" | "and">) => {
+  if (!OPERATOR_MAP[op]) {
+    throw Error(`operator "${op}" is not supported by refine-pocketbase`);
+  }
+
+  return OPERATOR_MAP[op];
 };
 
 export const isClientResponseError = (x: any): x is ClientResponseError =>
@@ -65,7 +76,7 @@ export const extractFilterExpression = (
     .map((filter, i): string =>
       isConditionalFilter(filter)
         ? `(${extractFilterExpression(filter.value, filter.operator, i)})`
-        : `${filter.field} ${OPERATOR_MAP[filter.operator]} {:${
+        : `${filter.field} ${crudOperator(filter.operator)} {:${
             filter.field
           }${pos}${i}}`
     )
