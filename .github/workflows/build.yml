@@ -43,10 +43,14 @@ jobs:
         name: playwright-report
         path: demo/playwright-report/
         retention-days: 30
-    - name: publish
-      if: github.event_name == 'release'
-      run: |
-        npm publish {{ github.event.release.prerelease ? '--tag dev' : '' }}
+    - name: prerelease
+      if: github.event_name == 'release' && github.event.release.prerelease
+      run: npm publish --tag dev
       env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} 
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    - name: publish
+      if: github.event_name == 'release' && !github.event.release.prerelease
+      run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     
