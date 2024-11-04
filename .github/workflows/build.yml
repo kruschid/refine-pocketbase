@@ -1,4 +1,4 @@
-name: Build & Test
+name: Build & Test & Maybe Publish
 on:
   push:
     branches: [ main, dev ]
@@ -45,11 +45,13 @@ jobs:
         retention-days: 30
     - name: prerelease
       if: github.event_name == 'release' && github.event.release.prerelease
+      working-directory: lib
       run: npm publish --tag dev
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     - name: publish
       if: github.event_name == 'release' && !github.event.release.prerelease
+      working-directory: lib
       run: npm publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
