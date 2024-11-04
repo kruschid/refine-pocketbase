@@ -1,7 +1,7 @@
 {
   "name": "refine-pocketbase",
   "description": "PocketBase auth, data & live providers for Refine",
-  "version": "0.0.9",
+  "version": "0.1.0-dev.0",
   "author": "Denis Kruschinski <4989565+kruschid@users.noreply.github.com>",
   "source": "src/index.ts",
   "module": "build/index.mjs",
@@ -17,7 +17,7 @@
     "test": "node --import=tsimp/import src/test.ts",
     "build": "npm run test && parcel build",
     "prepublishOnly": "npm run build && cp ../{README.md,LICENSE} ./",
-    "postpublish": "rm  ./{README.md,LICENSE}"
+    "postpublish": "rm ./{README.md,LICENSE}"
   },
   "engines": {
     "node": ">=20.0.0"
