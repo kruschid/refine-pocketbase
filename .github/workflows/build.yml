@@ -25,6 +25,7 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: lts/*
+        registry-url: "https://registry.npmjs.org"
     - name: Build & Test Lib
       working-directory: lib
       run: | 
