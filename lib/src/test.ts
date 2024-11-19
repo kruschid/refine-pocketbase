@@ -65,12 +65,12 @@ test("stringifyFilters", (t) => {
               {
                 field: "a",
                 operator: "in",
-                value: "",
+                value: ["", "", ""],
               },
               {
                 field: "b",
                 operator: "nin",
-                value: "",
+                value: [""],
               },
             ],
           },
@@ -92,7 +92,7 @@ test("stringifyFilters", (t) => {
         ],
       },
     ]),
-    "((a ?= {:a00} && b ?!= {:b01}) || (a >= {:a10} && b <= {:b11}))"
+    "(((a = {:a000} || a = {:a001} || a = {:a002}) && (b != {:b010})) || (a >= {:a10} && b <= {:b11}))"
   );
 
   t.end();
@@ -162,12 +162,12 @@ test("extractFilterValues", (t) => {
               {
                 field: "a",
                 operator: "in",
-                value: 5,
+                value: [5, 9],
               },
               {
                 field: "b",
                 operator: "nin",
-                value: 6,
+                value: [6],
               },
             ],
           },
@@ -189,7 +189,7 @@ test("extractFilterValues", (t) => {
         ],
       },
     ]),
-    { a00: 5, b01: 6, a10: 7, b11: 8 }
+    { a000: 5, a001: 9, b010: 6, a10: 7, b11: 8 }
   );
 
   t.end();
