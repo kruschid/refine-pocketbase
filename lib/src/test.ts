@@ -72,6 +72,11 @@ test("stringifyFilters", (t) => {
                 operator: "nin",
                 value: [""],
               },
+              {
+                field: "c",
+                operator: "in",
+                value: [],
+              },
             ],
           },
           {

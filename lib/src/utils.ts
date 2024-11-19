@@ -83,11 +83,13 @@ export const extractFilterExpression = (
 
       if (isInOrNotInFilter(filter)) {
         const toOrExpression = (_value: any, j: number) => `${filter.field} ${crudOperator(filter.operator)} {:${filter.field}${pos}${i}${j}}`
-        return `(${filter.value.map(toOrExpression).join(" || ")})`
+        const queryExpression = filter.value.map(toOrExpression).join(" || ") 
+        return queryExpression !== "" ? `(${queryExpression})` : ""
       } 
 
       return `${filter.field} ${crudOperator(filter.operator)} {:${filter.field}${pos}${i}}`
     })
+    .filter(val => val != "")
     .join(` ${OPERATOR_MAP[joinOperator]} `);
 
 export const extractFilterValues = (
