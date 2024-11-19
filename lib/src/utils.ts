@@ -78,7 +78,8 @@ export const extractFilterExpression = (
   filters
     .map((filter, i): string => {
       if (isConditionalFilter(filter)) {
-        return `(${extractFilterExpression(filter.value, filter.operator, i)})`
+        const result = extractFilterExpression(filter.value, filter.operator, i)
+        return result !== "" ? `(${result})` : ""
       }
 
       if (isInOrNotInFilter(filter)) {
