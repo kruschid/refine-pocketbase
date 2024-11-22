@@ -14,8 +14,8 @@ const OPERATOR_MAP = {
   gt: ">",
   lte: "<=",
   gte: ">=",
-  in: "=", // handled in extractFilterExpression and extractFilterValues
-  nin: "!=", // handled in extractFilterExpression and extractFilterValues
+  in: "?=",
+  nin: "?!=",
   ina: undefined,
   nina: undefined,
   contains: "~",
@@ -67,30 +67,19 @@ export const toHttpError = (e: ClientResponseError): HttpError => ({
 const isConditionalFilter = (filter: CrudFilter): filter is ConditionalFilter =>
   filter.operator === "and" || filter.operator === "or";
 
-const isInOrNotInFilter = (filter: CrudFilter): boolean =>
-  filter.operator === "in" || filter.operator === "nin"
-
 export const extractFilterExpression = (
   filters: CrudFilters,
   joinOperator: ConditionalFilter["operator"] = "and",
   pos = 0
 ) =>
   filters
-    .map((filter, i): string => {
-      if (isConditionalFilter(filter)) {
-        const result = extractFilterExpression(filter.value, filter.operator, i)
-        return result !== "" ? `(${result})` : ""
-      }
-
-      if (isInOrNotInFilter(filter)) {
-        const toOrExpression = (_value: any, j: number) => `${filter.field} ${crudOperator(filter.operator)} {:${filter.field}${pos}${i}${j}}`
-        const queryExpression = filter.value.map(toOrExpression).join(" || ") 
-        return queryExpression !== "" ? `(${queryExpression})` : ""
-      } 
-
-      return `${filter.field} ${crudOperator(filter.operator)} {:${filter.field}${pos}${i}}`
-    })
-    .filter(val => val != "")
+    .map((filter, i): string =>
+      isConditionalFilter(filter)
+        ? `(${extractFilterExpression(filter.value, filter.operator, i)})`
+        : `${filter.field} ${crudOperator(filter.operator)} {:${
+            filter.field
+          }${pos}${i}}`
+    )
     .join(` ${OPERATOR_MAP[joinOperator]} `);
 
 export const extractFilterValues = (
@@ -98,20 +87,11 @@ export const extractFilterValues = (
   pos = 0
 ): Record<string, unknown> =>
   filters.reduce(
-    (acc, filter, i) => {
-      if (isConditionalFilter(filter)) {
-        return {...acc, ...extractFilterValues(filter.value, i)}
-      } 
-      
-      let filterValueMap = {}
-      if (isInOrNotInFilter(filter)) {
-        filterValueMap = filter.value.reduce((sacc: Record<string, unknown>, value: unknown, j: number) => (
-          {...sacc, [filter.field + pos + i + j]: value }
-        ), {})
-      } else {
-        filterValueMap = { [filter.field + pos + i]: filter.value }
-      }
-      return {...acc, ...filterValueMap}
-    },
+    (acc, filter, i) => ({
+      ...acc,
+      ...(isConditionalFilter(filter)
+        ? extractFilterValues(filter.value, i)
+        : { [filter.field + pos + i]: filter.value }),
+    }),
     {}
   );
