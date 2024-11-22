@@ -4,179 +4,112 @@ import { nanoid } from "nanoid";
 const wrap = (str: string, wrapper = '"') =>
   str?.trim() ? `${wrapper}${str}${wrapper}` : '';
 
+type ExpressionBindings = {
+  expression: string,
+  bindings: Record<string, unknown>
+}
+
+// Higher order function for simple `<operator1> <operand> <operator2>` query builder
+const defaultNanoidExpression = (operator: string) => (operand1: string, operand2: unknown): ExpressionBindings => {
+  const id = nanoid()
+  return { expression: `${operand1} ${operator} {:${id}}`, bindings: { [id]: operand2 } }
+}
+
 const OPERATOR_MAP = {
   eq: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return `${operand1} = {:${operand2}}`
-    },
-    isBindable: true,
-    paramsIterable: false
+    exprBuilder: defaultNanoidExpression("="),
   },
   ne: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return `${operand1} != {:${operand2}}`
-    },
-    isBindable: true,
-    paramsIterable: false
+    exprBuilder: defaultNanoidExpression("!="),
   },
   lt: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return `${operand1} < {:${operand2}}`
-    },
-    isBindable: true,
-    paramsIterable: false
+    exprBuilder: defaultNanoidExpression("<"),
   },
   gt: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return `${operand1} > {:${operand2}}`
-    },
-    isBindable: true,
-    paramsIterable: false
+    exprBuilder: defaultNanoidExpression(">"),
   },
   lte: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return `${operand1} <= {:${operand2}}`
-    },
-    isBindable: true,
-    paramsIterable: false
+    exprBuilder: defaultNanoidExpression("<="),
   },
   gte: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return `${operand1} >= {:${operand2}}`
-    },
-    isBindable: true,
-    paramsIterable: false
+    exprBuilder: defaultNanoidExpression(">="),
   },
   contains: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return `${operand1} ~ {:${operand2}}`
-    },
-    isBindable: true,
-    paramsIterable: false
+    exprBuilder: defaultNanoidExpression("~"),
   },
   ncontains: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return `${operand1} !~ {:${operand2}}`
-    },
-    isBindable: true,
-    paramsIterable: false
+    exprBuilder: defaultNanoidExpression("!~"),
   },
   containss: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return `${operand1} ~ {:${operand2}}`
-    },
-    isBindable: true,
-    paramsIterable: false
+    exprBuilder: defaultNanoidExpression("~"),
   },
   ncontainss: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return `${operand1} !~ {:${operand2}}`
-    },
-    isBindable: true,
-    paramsIterable: false
+    exprBuilder: defaultNanoidExpression("!~"),
   },
   startswith: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return `${operand1} ~ {:${operand2}}`
-    },
-    isBindable: true,
-    paramsIterable: false
+    exprBuilder: defaultNanoidExpression("~"),
   },
   nstartswith: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return `${operand1} !~ {:${operand2}}`
-    },
-    isBindable: true,
-    paramsIterable: false
+    exprBuilder: defaultNanoidExpression("!~"),
   },
   startswiths: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return `${operand1} ~ {:${operand2}}`
-    },
-    isBindable: true,
-    paramsIterable: false
+    exprBuilder: defaultNanoidExpression("~"),
   },
   nstartswiths: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return `${operand1} !~ {:${operand2}}`
-    },
-    isBindable: true,
-    paramsIterable: false
+    exprBuilder: defaultNanoidExpression("!~"),
   },
   endswith: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return `${operand1} ~ {:${operand2}}`
-    },
-    isBindable: true,
-    paramsIterable: false
+    exprBuilder: defaultNanoidExpression("~"),
   },
   nendswith: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return `${operand1} !~ {:${operand2}}`
-    },
-    isBindable: true,
-    paramsIterable: false
+    exprBuilder: defaultNanoidExpression("!~"),
   },
   endswiths: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return `${operand1} ~ {:${operand2}}`
-    },
-    isBindable: true,
-    paramsIterable: false
+    exprBuilder: defaultNanoidExpression("~"),
   },
   nendswiths: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return `${operand1} !~ {:${operand2}}`
-    },
-    isBindable: true,
-    paramsIterable: false
+    exprBuilder: defaultNanoidExpression("!~"),
   },
   null: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return operand2 === true ? `${operand1} = null` : `${operand1} != null`
+    exprBuilder: (operand1: string, operand2: unknown): ExpressionBindings => {
+      return { expression: operand2 === true ? `${operand1} = null` : `${operand1} != null`, bindings: {} }
     },
-    isBindable: false,
-    paramsIterable: false
   },
   nnull: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown }): string => {
-      return operand2 === true ? `${operand1} != null` : `${operand1} = null`
+    exprBuilder: (operand1: string, operand2: unknown): ExpressionBindings => {
+      return { expression: operand2 === true ? `${operand1} != null` : `${operand1} = null`, bindings: {} }
     },
-    isBindable: false,
-    paramsIterable: false
   },
   between: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown[] }): string => {
-      return `(${operand1} >= {:${operand2[0]}} && ${operand1} <= {:${operand2[1]}})`
+    exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
+      const [id1, id2] = [nanoid(), nanoid()]
+      return { expression: `(${operand1} >= {:${id1}} && ${operand1} <= {:${id2}})`, bindings: { [id1]: operand2[0], [id2]: operand2[1] } }
     },
-    isBindable: true,
-    paramsIterable: true
   },
   nbetween: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown[] }): string => {
-      return `(${operand1} < {:${operand2[0]}} && ${operand1} > {:${operand2[1]}})`
+    exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
+      const [id1, id2] = [nanoid(), nanoid()]
+      return { expression: `(${operand1} < {:${id1}} && ${operand1} > {:${id2}})`, bindings: { [id1]: operand2[0], [id2]: operand2[1] } }
     },
-    isBindable: true,
-    paramsIterable: true
   },
   in: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown[] }): string => {
-      return operand2.map(value => `${operand1} = {:${value}}`).join(" || ")
+    exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
+      const ids = operand2.map(v => nanoid())
+      const bindings = operand2.map((operand, i) => [ids[i], operand])
+      return { expression: operand2.map(value => `${operand1} = {:${value}}`).join(" || "), bindings: Object.fromEntries(bindings) }
     },
-    isBindable: true,
-    paramsIterable: true
   },
   nin: {
-    queryBuilder: ({ operand1, operand2 }: { operand1: string, operand2: unknown[] }): string => {
-      return operand2.map(value => `${operand1} != {:${value}}`).join(" || ")
+    exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
+      const ids = operand2.map(v => nanoid())
+      const bindings = operand2.map((operand, i) => [ids[i], operand])
+      return { expression: operand2.map(value => `${operand1} != {:${value}}`).join(" || "), bindings: Object.fromEntries(bindings) }
     },
-    isBindable: true,
-    paramsIterable: true
   },
   ina: undefined,
   nina: undefined,
-  or: undefined,
-  and: undefined,
+  or: undefined, // TODO: implement this
+  and: undefined, // TODO: implement this
 };
 
 export class FilterBuilder {
@@ -190,26 +123,18 @@ export class FilterBuilder {
   }
 
   public buildBindignString(): string {
+    // TODO: call this recursively for conditional expression
     return this.filters
       .map((filter: LogicalFilter) => {
         const operator = OPERATOR_MAP[filter.operator]
-        if (!operator) return ""
-
-        let operand2 = filter.value
-        if (operator.paramsIterable && operator.isBindable) {
-          operand2 = filter.value.map(v => nanoid())
-        } else if (operator.isBindable) {
-          operand2 = nanoid()
+        if (!operator) {
+          throw Error(`operator "${operator}" is not supported by refine-pocketbase`);
         }
 
-        const filterString = operator.queryBuilder({ operand1: filter.field, operand2: operand2 })
-        if (operator.paramsIterable && operator.isBindable) {
-          filter.value.map((v: any, i: any) => this.bindingValues[operand2[i]] = v)
-        } else if (operator.isBindable) {
-          this.bindingValues[operand2] = filter.value
-        }
+        const { expression, bindings } = operator.exprBuilder(filter.field, filter.value)
+        this.bindingValues = { ...this.bindingValues, ...bindings }
 
-        return filterString
+        return expression
       })
       .join(" && ")
   }
