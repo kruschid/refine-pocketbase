@@ -72,38 +72,56 @@ const OPERATOR_MAP = {
   },
   null: {
     exprBuilder: (operand1: string, operand2: unknown): ExpressionBindings => {
-      return { expression: operand2 === true ? `${operand1} = null` : `${operand1} != null`, bindings: {} }
+      return {
+        expression: operand2 === true ? `${operand1} = null` : `${operand1} != null`,
+        bindings: {}
+      }
     },
   },
   nnull: {
     exprBuilder: (operand1: string, operand2: unknown): ExpressionBindings => {
-      return { expression: operand2 === true ? `${operand1} != null` : `${operand1} = null`, bindings: {} }
+      return {
+        expression: operand2 === true ? `${operand1} != null` : `${operand1} = null`,
+        bindings: {}
+      }
     },
   },
   between: {
     exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
       const [id1, id2] = [nanoid(), nanoid()]
-      return { expression: `(${operand1} >= {:${id1}} && ${operand1} <= {:${id2}})`, bindings: { [id1]: operand2[0], [id2]: operand2[1] } }
+      return {
+        expression: `(${operand1} >= {:${id1}} && ${operand1} <= {:${id2}})`,
+        bindings: { [id1]: operand2[0], [id2]: operand2[1] }
+      }
     },
   },
   nbetween: {
     exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
       const [id1, id2] = [nanoid(), nanoid()]
-      return { expression: `(${operand1} < {:${id1}} && ${operand1} > {:${id2}})`, bindings: { [id1]: operand2[0], [id2]: operand2[1] } }
+      return {
+        expression: `(${operand1} < {:${id1}} && ${operand1} > {:${id2}})`,
+        bindings: { [id1]: operand2[0], [id2]: operand2[1] }
+      }
     },
   },
   in: {
     exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
       const ids = operand2.map(v => nanoid())
       const bindings = operand2.map((operand, i) => [ids[i], operand])
-      return { expression: operand2.map(value => `${operand1} = {:${value}}`).join(" || "), bindings: Object.fromEntries(bindings) }
+      return {
+        expression: operand2.map(value => `${operand1} = {:${value}}`).join(" || "),
+        bindings: Object.fromEntries(bindings)
+      }
     },
   },
   nin: {
     exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
       const ids = operand2.map(v => nanoid())
       const bindings = operand2.map((operand, i) => [ids[i], operand])
-      return { expression: operand2.map(value => `${operand1} != {:${value}}`).join(" || "), bindings: Object.fromEntries(bindings) }
+      return {
+        expression: operand2.map(value => `${operand1} != {:${value}}`).join(" || "),
+        bindings: Object.fromEntries(bindings)
+      }
     },
   },
   ina: undefined,
