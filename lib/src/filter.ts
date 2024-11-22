@@ -94,7 +94,7 @@ const OPERATOR_MAP = {
         bindings: { [id1]: operand2[0], [id2]: operand2[1] }
       }
     },
-  },
+  },  
   nbetween: {
     exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
       const [id1, id2] = [nanoid(), nanoid()]
@@ -140,7 +140,7 @@ export class FilterBuilder {
     this.bindingValues = {}
   }
 
-  public buildBindignString(): string {
+  public buildBindingString(): string {
     // TODO: call this recursively for conditional expression
     return this.filters
       .map((filter: LogicalFilter) => {

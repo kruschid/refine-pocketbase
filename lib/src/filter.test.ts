@@ -24,7 +24,7 @@ describe("FilterBuilder", () => {
       [{ field: "foo", operator: "nendswiths", value: "bar" }, "!~"],
     ])("simple filter expression", (value, expectedOperator) => {
       const builder = new FilterBuilder([value as LogicalFilter])
-      const bindingString = builder.buildBindignString()
+      const bindingString = builder.buildBindingString()
       const bindingValues = builder.getBindingValues()
 
       expect(bindingString).toMatch(new RegExp(`foo ${expectedOperator} \{\:.+\}`, "g"))
@@ -37,7 +37,7 @@ describe("FilterBuilder", () => {
         { field: "fizz", operator: "eq", value: "buzz" },
       ]
       const builder = new FilterBuilder(filters)
-      const bindingString = builder.buildBindignString()
+      const bindingString = builder.buildBindingString()
       const bindingValues = builder.getBindingValues()
 
       expect(bindingString).toMatch(/foo = {:.+} && fizz = {:.+}/)
@@ -52,7 +52,7 @@ describe("FilterBuilder", () => {
         { field: "rfizz", operator: "nnull", value: false },
       ]
       const builder = new FilterBuilder(filters)
-      const bindingString = builder.buildBindignString()
+      const bindingString = builder.buildBindingString()
 
       expect(bindingString).toEqual("foo = null && rfoo != null && fizz != null && rfizz = null")
     })
@@ -62,7 +62,7 @@ describe("FilterBuilder", () => {
         { field: "foo", operator: "between", value: [3, 5] },
       ]
       const builder = new FilterBuilder(filters)
-      const bindingString = builder.buildBindignString()
+      const bindingString = builder.buildBindingString()
       const bindingValues = builder.getBindingValues()
 
       expect(bindingString).toMatch(/foo >= {:.+} && foo <= {:.+}/)
@@ -74,7 +74,7 @@ describe("FilterBuilder", () => {
         { field: "foo", operator: "nbetween", value: [3, 5] },
       ]
       const builder = new FilterBuilder(filters)
-      const bindingString = builder.buildBindignString()
+      const bindingString = builder.buildBindingString()
       const bindingValues = builder.getBindingValues()
 
       expect(bindingString).toMatch(/foo < {:.+} && foo > {:.+}/)
@@ -87,7 +87,7 @@ describe("FilterBuilder", () => {
       ]
 
       const builder = new FilterBuilder(filters)
-      const bindingString = builder.buildBindignString()
+      const bindingString = builder.buildBindingString()
       const bindingValues = builder.getBindingValues()
 
       expect(bindingString).toMatch(/foo = {:.+} \|\| foo = {:.+} \|\| foo = {:.+}/)
@@ -100,7 +100,7 @@ describe("FilterBuilder", () => {
       ]
 
       const builder = new FilterBuilder(filters)
-      const bindingString = builder.buildBindignString()
+      const bindingString = builder.buildBindingString()
       const bindingValues = builder.getBindingValues()
 
       expect(bindingString).toMatch(/foo != {:.+} \|\| foo != {:.+} \|\| foo != {:.+}/)
