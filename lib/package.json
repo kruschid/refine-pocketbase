@@ -14,7 +14,7 @@
   },
   "homepage": "https://github/kruschid/refine-pocketbase",
   "scripts": {
-    "test": "node --import=tsimp/import src/test.ts",
+    "test": "vitest",
     "build": "npm run test && parcel build"
   },
   "engines": {
@@ -25,12 +25,14 @@
     "@parcel/packager-ts": "^2.12.0",
     "@parcel/transformer-typescript-types": "^2.12.0",
     "@refinedev/core": "^4.55.0",
+    "@types/nanoid": "^3.0.0",
     "@types/tape": "^5.6.4",
     "parcel": "^2.12.0",
     "pocketbase": "^0.21.5",
     "tape": "^5.9.0",
     "tsimp": "^2.0.12",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
   },
   "keywords": [
     "refine",
@@ -45,5 +47,8 @@
     "src",
     "README.md",
     "LICENSE"
-  ]
+  ],
+  "dependencies": {
+    "nanoid": "^5.0.8"
+  }
 }
