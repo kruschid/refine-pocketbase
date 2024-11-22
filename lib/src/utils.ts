@@ -2,48 +2,111 @@ import {
   ConditionalFilter,
   CrudFilter,
   CrudFilters,
-  CrudOperators,
   HttpError,
+  LogicalFilter
 } from "@refinedev/core";
 import { ClientResponseError } from "pocketbase";
 
-const OPERATOR_MAP = {
-  eq: "=",
-  ne: "!=",
-  lt: "<",
-  gt: ">",
-  lte: "<=",
-  gte: ">=",
-  in: "?=",
-  nin: "?!=",
+type Suffixer = ReturnType<typeof createSuffixer>;
+type FilterExpressionTransofrmer = (filter: LogicalFilter, counter: Suffixer) => string;
+type FilterValueTransformer = (filter: LogicalFilter, counter: Suffixer) => Record<string, string>;
+type FilterTransformers = [FilterExpressionTransofrmer, FilterValueTransformer];
+
+const createSuffixer = () => {
+  let i = 0;
+  return (field: string) => `${field}${String(i++)}`;
+}
+
+const transformer = (op: string): FilterTransformers => [
+  ({field}, withSuffix) => `${field} ${op} {:${withSuffix(field)}`,
+  ({field, value}, withSuffix) => ({
+    [`${withSuffix(field)}`]: value,
+  })
+];
+
+const LOGICAL_OPERATORS: Record<LogicalFilter["operator"], FilterTransformers | undefined> = {
+  eq: transformer("="),
+  ne: transformer("!="),
+  lt: transformer("<"),
+  gt: transformer(">"),
+  lte: transformer("<="),
+  gte: transformer(">="),
+  in: [
+    (filter, withSuffix) => filter.value.map(() => `${filter.field} = {:${withSuffix(filter.field)}}`).join(" || "),
+    (filter, withSuffix) => filter.value.reduce((acc: Record<string, string>, val: string) => ({
+      ...acc,
+      [`${withSuffix(filter.field)}`]: val,
+    }), {})
+  ],
+  nin: [
+    (filter, withSuffix) => filter.value.map(() => `${filter.field} != {:${withSuffix(filter.field)}}`).join(" && "),
+    (filter, withSuffix) => filter.value.reduce((acc: Record<string, string>, val: string) => ({
+      ...acc,
+      [`${withSuffix(filter.field)}`]: val,
+    }), {})
+  ],
   ina: undefined,
   nina: undefined,
-  contains: "~",
-  ncontains: "!~",
-  containss: "~",
-  ncontainss: "!~",
-  between: undefined,
-  nbetween: undefined,
-  null: "=",
-  nnull: "!=",
-  startswith: "~",
-  nstartswith: "!~",
-  startswiths: "~",
-  nstartswiths: "!~",
-  endswith: "~",
-  nendswith: "!~",
-  endswiths: "~",
-  nendswiths: "!~",
-  or: "||",
+  contains: transformer("~"),
+  ncontains: transformer("!~"),
+  containss: transformer("~"),
+  ncontainss: transformer("!~"),
+  between: [
+    ({field}, withSuffix) => `${field} > {:${withSuffix(field)}} && ${field} < {:${withSuffix(field)}}`,
+    ({field, value: [min, max]}, withSuffix) => ({
+      [`${withSuffix(field)}`]: min,
+      [`${withSuffix(field)}`]: max,
+    }),
+  ],
+  nbetween: [
+    ({field}, withSuffix) => `${field} < {:${withSuffix(field)}} || ${field} > {:${withSuffix(field)}}`,
+    ({field, value: [min, max]}, withSuffix) => ({
+      [`${withSuffix(field)}`]: min,
+      [`${withSuffix(field)}`]: max,
+    }),
+  ],
+  null: undefined,
+  nnull: undefined,
+  startswith: [
+    ({field}, withSuffix) => `${field} ~ {:${withSuffix(field)}}`,
+    ({field, value}, withSuffix) => ({
+      [`${withSuffix(field)}`]: `${value}%`
+    })
+  ],
+  nstartswith: [
+    ({field}, withSuffix) => `${field} !~ {:${withSuffix(field)}}`,
+    ({field, value}, withSuffix) => ({
+      [`${withSuffix(field)}`]: `${value}%`
+    })
+  ],
+  startswiths: undefined,
+  nstartswiths: undefined,
+  endswith: [
+    ({field}, withSuffix) => `${field} ~ {:${withSuffix(field)}}`,
+    ({field, value}, withSuffix) => ({
+      [`${withSuffix(field)}`]: `%${value}`
+    })
+  ],
+  nendswith: undefined,
+  endswiths: undefined,
+  nendswiths: undefined,
+}
+
+const CONDITIONAL_OPERATORS: Record<ConditionalFilter["operator"], string> = {
   and: "&&",
-};
+  or: "||"
+}
 
-const crudOperator = (op: Exclude<CrudOperators, "or" | "and">) => {
-  if (!OPERATOR_MAP[op]) {
-    throw Error(`operator "${op}" is not supported by refine-pocketbase`);
+const getTransformer = (filter: LogicalFilter) => {
+  const [transformExpression, transformValues] = LOGICAL_OPERATORS[filter.operator] ?? [];
+
+  if (!transformExpression || !transformValues) {
+    throw Error(`operator "${filter.operator}" is not supported by refine-pocketbase`);
   }
-
-  return OPERATOR_MAP[op];
+  return {
+    transformExpression,
+    transformValues,
+  } 
 };
 
 export const isClientResponseError = (x: any): x is ClientResponseError =>
@@ -56,9 +119,9 @@ export const toHttpError = (e: ClientResponseError): HttpError => ({
   message: e.message,
   statusCode: e.status,
   errors: Object.keys(e.response.data).reduce(
-    (acc, next) => ({
+    (acc, withSuffix) => ({
       ...acc,
-      [next]: (e as ClientResponseError).response.data[next].message,
+      [withSuffix]: (e as ClientResponseError).response.data[withSuffix].message,
     }),
     {}
   ),
@@ -70,28 +133,26 @@ const isConditionalFilter = (filter: CrudFilter): filter is ConditionalFilter =>
 export const extractFilterExpression = (
   filters: CrudFilters,
   joinOperator: ConditionalFilter["operator"] = "and",
-  pos = 0
+  withSuffix = createSuffixer()
 ) =>
   filters
-    .map((filter, i): string =>
+    .map((filter): string =>
       isConditionalFilter(filter)
-        ? `(${extractFilterExpression(filter.value, filter.operator, i)})`
-        : `${filter.field} ${crudOperator(filter.operator)} {:${
-            filter.field
-          }${pos}${i}}`
+        ? `(${extractFilterExpression(filter.value, filter.operator, withSuffix)})`
+        : getTransformer(filter).transformExpression(filter, withSuffix)
     )
-    .join(` ${OPERATOR_MAP[joinOperator]} `);
+    .join(` ${CONDITIONAL_OPERATORS[joinOperator]} `);
 
 export const extractFilterValues = (
   filters: CrudFilters,
-  pos = 0
+  withSuffix = createSuffixer()
 ): Record<string, unknown> =>
   filters.reduce(
-    (acc, filter, i) => ({
+    (acc, filter) => ({
       ...acc,
       ...(isConditionalFilter(filter)
-        ? extractFilterValues(filter.value, i)
-        : { [filter.field + pos + i]: filter.value }),
+        ? extractFilterValues(filter.value, withSuffix)
+        : getTransformer(filter).transformValues(filter, withSuffix)),
     }),
     {}
   );
