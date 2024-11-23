@@ -169,8 +169,6 @@ describe("FilterBuilder", () => {
       expect(bindingValues[resultBindings[2]]).toEqual("alice")
       expect(bindingValues[resultBindings[3]]).toEqual("pan")
     })
-
-    describe("empty filter expressions")
   })
 })
 

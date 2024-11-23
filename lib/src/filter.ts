@@ -124,9 +124,10 @@ const OPERATOR_MAP = {
   ina: undefined,
   nina: undefined,
   or: {
-    exprBuilder: (operands: CrudFilter[]): ExpressionBindings => {
+    exprBuilder: (filters: CrudFilter[]): ExpressionBindings => {
       let bindings = {}
-      const expression = operands.map(filter => {
+      const expression = 
+        filters.map(filter => {
         const builder = new FilterBuilder([filter])
         const expression = builder.buildBindingString()
         const currBindings = builder.getBindingValues()
@@ -141,9 +142,9 @@ const OPERATOR_MAP = {
     }
   },
   and: {
-    exprBuilder: (operands: CrudFilter[]): ExpressionBindings => {
+    exprBuilder: (filters: CrudFilter[]): ExpressionBindings => {
       let bindings = {}
-      const expression = operands.map(filter => {
+      const expression = filters.map(filter => {
         const builder = new FilterBuilder([filter])
         const expression = builder.buildBindingString()
         const currBindings = builder.getBindingValues()
@@ -177,7 +178,7 @@ export class FilterBuilder {
         }
 
         const { expression, bindings } = this.isConditionalFilter(filter) ?
-          operator.exprBuilder(filter.value, filter.value)
+          operator.exprBuilder(filter.value) // TODO: fix this compilation
           : operator.exprBuilder(filter.field, filter.value)
 
         this.bindingValues = { ...this.bindingValues, ...bindings }
