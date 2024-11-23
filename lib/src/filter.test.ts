@@ -1,3 +1,4 @@
+import { CrudFilter } from '@refinedev/core';
 import { CrudFilter, LogicalFilter } from '@refinedev/core';
 import { describe, expect, test } from "vitest";
 import { FilterBuilder } from "./filter";
@@ -168,6 +169,23 @@ describe("FilterBuilder", () => {
       expect(bindingValues[resultBindings[1]]).toEqual("buzz")
       expect(bindingValues[resultBindings[2]]).toEqual("alice")
       expect(bindingValues[resultBindings[3]]).toEqual("pan")
+    })
+  })
+
+  describe("empty filters", () => {
+    test.each([
+      { field: "foo", operator: "in", value: [] },
+      { field: "foo", operator: "nin", value: [] },
+      { operator: "or", value: [] },
+      { operator: "and", value: [] },
+      { field: "foo", operator: "between", value: [] },
+      { field: "foo", operator: "nbetween", value: [] },
+    ])("returns empty string for empty value", (filter) => {
+      const builder = new FilterBuilder([filter as CrudFilter])
+      const bindingString = builder.buildBindingString()
+
+      expect(bindingString).toEqual("")
+
     })
   })
 })

@@ -85,6 +85,10 @@ const OPERATOR_MAP = {
   },
   between: {
     exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
+      if (operand2.length == 0 || operand2.length > 2) {
+        return {expression: "", bindings: {}}
+      }
+
       const [id1, id2] = [nanoid(), nanoid()]
       return {
         expression: `(${operand1} >= {:${id1}} && ${operand1} <= {:${id2}})`,
@@ -94,6 +98,10 @@ const OPERATOR_MAP = {
   },
   nbetween: {
     exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
+      if (operand2.length == 0 || operand2.length > 2) {
+        return {expression: "", bindings: {}}
+      }
+
       const [id1, id2] = [nanoid(), nanoid()]
       return {
         expression: `(${operand1} < {:${id1}} && ${operand1} > {:${id2}})`,
