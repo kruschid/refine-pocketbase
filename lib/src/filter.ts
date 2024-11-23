@@ -86,7 +86,7 @@ const OPERATOR_MAP = {
   between: {
     exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
       if (operand2.length == 0 || operand2.length > 2) {
-        return {expression: "", bindings: {}}
+        return { expression: "", bindings: {} }
       }
 
       const [id1, id2] = [nanoid(), nanoid()]
@@ -99,7 +99,7 @@ const OPERATOR_MAP = {
   nbetween: {
     exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
       if (operand2.length == 0 || operand2.length > 2) {
-        return {expression: "", bindings: {}}
+        return { expression: "", bindings: {} }
       }
 
       const [id1, id2] = [nanoid(), nanoid()]
@@ -134,17 +134,17 @@ const OPERATOR_MAP = {
   or: {
     exprBuilder: (filters: CrudFilter[]): ExpressionBindings => {
       let bindings = {}
-      const expression = 
+      const expression =
         filters.map(filter => {
-        const builder = new FilterBuilder([filter])
-        const expression = builder.buildBindingString()
-        const currBindings = builder.getBindingValues()
-        bindings = { ...bindings, ...currBindings }
+          const builder = new FilterBuilder([filter])
+          const expression = builder.buildBindingString()
+          const currBindings = builder.getBindingValues()
+          bindings = { ...bindings, ...currBindings }
 
-        return expression
-      })
-        .map(expression => `(${expression})`)
-        .join(" || ")
+          return expression
+        })
+          .map(expression => `(${expression})`)
+          .join(" || ")
 
       return { expression, bindings }
     }
@@ -185,9 +185,10 @@ export class FilterBuilder {
           throw Error(`operator "${filter.operator}" is not supported by refine-pocketbase`);
         }
 
-        const { expression, bindings } = this.isConditionalFilter(filter) ?
-          operator.exprBuilder(filter.value) // TODO: fix this compilation
-          : operator.exprBuilder(filter.field, filter.value)
+        const { expression, bindings } =
+          this.isConditionalFilter(filter) ?
+            operator.exprBuilder(filter.value) // TODO: fix this compilation
+            : operator.exprBuilder(filter.field, filter.value)
 
         this.bindingValues = { ...this.bindingValues, ...bindings }
         return expression
