@@ -1,8 +1,5 @@
-import { CrudFilter, LogicalFilter } from "@refinedev/core";
+import { ConditionalFilter, CrudFilter } from "@refinedev/core";
 import { nanoid } from "nanoid";
-
-const wrap = (str: string, wrapper = '"') =>
-  str?.trim() ? `${wrapper}${str}${wrapper}` : '';
 
 type ExpressionBindings = {
   expression: string,
@@ -94,7 +91,7 @@ const OPERATOR_MAP = {
         bindings: { [id1]: operand2[0], [id2]: operand2[1] }
       }
     },
-  },  
+  },
   nbetween: {
     exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
       const [id1, id2] = [nanoid(), nanoid()]
@@ -126,32 +123,64 @@ const OPERATOR_MAP = {
   },
   ina: undefined,
   nina: undefined,
-  or: undefined, // TODO: implement this
-  and: undefined, // TODO: implement this
+  or: {
+    exprBuilder: (operands: CrudFilter[]): ExpressionBindings => {
+      let bindings = {}
+      const expression = operands.map(filter => {
+        const builder = new FilterBuilder([filter])
+        const expression = builder.buildBindingString()
+        const currBindings = builder.getBindingValues()
+        bindings = { ...bindings, ...currBindings }
+
+        return expression
+      })
+        .map(expression => `(${expression})`)
+        .join(" || ")
+
+      return { expression, bindings }
+    }
+  },
+  and: {
+    exprBuilder: (operands: CrudFilter[]): ExpressionBindings => {
+      let bindings = {}
+      const expression = operands.map(filter => {
+        const builder = new FilterBuilder([filter])
+        const expression = builder.buildBindingString()
+        const currBindings = builder.getBindingValues()
+        bindings = { ...bindings, ...currBindings }
+
+        return expression
+      })
+        .map(expression => `(${expression})`)
+        .join(" && ")
+
+      return { expression, bindings }
+    }
+  },
 };
 
 export class FilterBuilder {
-  // TODO: handle conditional filters as well
-  private readonly filters: LogicalFilter[]
+  private readonly filters: CrudFilter[]
   private bindingValues: Record<string, unknown>
 
-  constructor(filters: LogicalFilter[]) {
+  constructor(filters: CrudFilter[]) {
     this.filters = filters
     this.bindingValues = {}
   }
 
   public buildBindingString(): string {
-    // TODO: call this recursively for conditional expression
     return this.filters
-      .map((filter: LogicalFilter) => {
+      .map((filter: CrudFilter) => {
         const operator = OPERATOR_MAP[filter.operator]
         if (!operator) {
-          throw Error(`operator "${operator}" is not supported by refine-pocketbase`);
+          throw Error(`operator "${filter.operator}" is not supported by refine-pocketbase`);
         }
 
-        const { expression, bindings } = operator.exprBuilder(filter.field, filter.value)
-        this.bindingValues = { ...this.bindingValues, ...bindings }
+        const { expression, bindings } = this.isConditionalFilter(filter) ?
+          operator.exprBuilder(filter.value, filter.value)
+          : operator.exprBuilder(filter.field, filter.value)
 
+        this.bindingValues = { ...this.bindingValues, ...bindings }
         return expression
       })
       .join(" && ")
@@ -161,7 +190,7 @@ export class FilterBuilder {
     return this.bindingValues
   }
 
-  private isConditionalFilter(filter: CrudFilter): boolean {
+  private isConditionalFilter(filter: CrudFilter): filter is ConditionalFilter {
     return filter.operator === "and" || filter.operator === "or";
   }
 }
