@@ -1,4 +1,3 @@
-import { CrudFilter } from '@refinedev/core';
 import { CrudFilter, LogicalFilter } from '@refinedev/core';
 import { describe, expect, test } from "vitest";
 import { FilterBuilder } from "./filter";

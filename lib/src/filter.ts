@@ -1,5 +1,8 @@
 import { ConditionalFilter, CrudFilter } from "@refinedev/core";
-import { nanoid } from "nanoid";
+
+const uid = (): string => {
+  return "id" + Math.random().toString(16).slice(2)
+}
 
 type ExpressionBindings = {
   expression: string,
@@ -8,7 +11,7 @@ type ExpressionBindings = {
 
 // Higher order function for simple `<operator1> <operand> <operator2>` query builder
 const defaultNanoidExpression = (operator: string) => (operand1: string, operand2: unknown): ExpressionBindings => {
-  const id = nanoid()
+  const id = uid()
   return { expression: `${operand1} ${operator} {:${id}}`, bindings: { [id]: operand2 } }
 }
 
@@ -89,7 +92,7 @@ const OPERATOR_MAP = {
         return { expression: "", bindings: {} }
       }
 
-      const [id1, id2] = [nanoid(), nanoid()]
+      const [id1, id2] = [uid(), uid()]
       return {
         expression: `(${operand1} >= {:${id1}} && ${operand1} <= {:${id2}})`,
         bindings: { [id1]: operand2[0], [id2]: operand2[1] }
@@ -102,7 +105,7 @@ const OPERATOR_MAP = {
         return { expression: "", bindings: {} }
       }
 
-      const [id1, id2] = [nanoid(), nanoid()]
+      const [id1, id2] = [uid(), uid()]
       return {
         expression: `(${operand1} < {:${id1}} && ${operand1} > {:${id2}})`,
         bindings: { [id1]: operand2[0], [id2]: operand2[1] }
@@ -111,7 +114,7 @@ const OPERATOR_MAP = {
   },
   in: {
     exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
-      const ids = operand2.map(v => nanoid())
+      const ids = operand2.map(v => uid())
       const bindings = operand2.map((operand, i) => [ids[i], operand])
       return {
         expression: operand2.map(value => `${operand1} = {:${value}}`).join(" || "),
@@ -121,7 +124,7 @@ const OPERATOR_MAP = {
   },
   nin: {
     exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
-      const ids = operand2.map(v => nanoid())
+      const ids = operand2.map(v => uid())
       const bindings = operand2.map((operand, i) => [ids[i], operand])
       return {
         expression: operand2.map(value => `${operand1} != {:${value}}`).join(" || "),

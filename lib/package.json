@@ -47,8 +47,5 @@
     "src",
     "README.md",
     "LICENSE"
-  ],
-  "dependencies": {
-    "nanoid": "^5.0.8"
-  }
+  ]
 }
