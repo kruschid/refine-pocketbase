@@ -57,28 +57,56 @@ describe("FilterBuilder", () => {
       expect(bindingString).toEqual("foo = null && rfoo != null && fizz != null && rfizz = null")
     })
 
-    test("between expression", () => {
-      const filters: LogicalFilter[] = [
-        { field: "foo", operator: "between", value: [3, 5] },
-      ]
-      const builder = new FilterBuilder(filters)
-      const bindingString = builder.buildBindingString()
-      const bindingValues = builder.getBindingValues()
+    describe("between expression", () => {
+      test("with valid values", () => {
+        const filters: LogicalFilter[] = [
+          { field: "foo", operator: "between", value: [3, 5] },
+        ]
+        const builder = new FilterBuilder(filters)
+        const bindingString = builder.buildBindingString()
+        const bindingValues = builder.getBindingValues()
 
-      expect(bindingString).toMatch(/foo >= {:.+} && foo <= {:.+}/)
-      expect(Object.values(bindingValues)).toEqual([3, 5])
+        expect(bindingString).toMatch(/foo >= {:.+} && foo <= {:.+}/)
+        expect(Object.values(bindingValues)).toEqual([3, 5])
+      })
+
+      test("with more than 2 values", () => {
+        const filters: LogicalFilter[] = [
+          { field: "foo", operator: "between", value: [3, 5, 6] },
+        ]
+        const builder = new FilterBuilder(filters)
+        const bindingString = builder.buildBindingString()
+        const bindingValues = builder.getBindingValues()
+
+        expect(bindingString).toEqual("")
+        expect(bindingValues).toEqual({})
+      })
     })
 
-    test("nbetween expression", () => {
-      const filters: LogicalFilter[] = [
-        { field: "foo", operator: "nbetween", value: [3, 5] },
-      ]
-      const builder = new FilterBuilder(filters)
-      const bindingString = builder.buildBindingString()
-      const bindingValues = builder.getBindingValues()
+    describe("nbetween expression", () => {
+      test("with valid values", () => {
+        const filters: LogicalFilter[] = [
+          { field: "foo", operator: "nbetween", value: [3, 5] },
+        ]
+        const builder = new FilterBuilder(filters)
+        const bindingString = builder.buildBindingString()
+        const bindingValues = builder.getBindingValues()
 
-      expect(bindingString).toMatch(/foo < {:.+} && foo > {:.+}/)
-      expect(Object.values(bindingValues)).toEqual([3, 5])
+        expect(bindingString).toMatch(/foo < {:.+} && foo > {:.+}/)
+        expect(Object.values(bindingValues)).toEqual([3, 5])
+      })
+
+      test("with more than 2 values", () => {
+        const filters: LogicalFilter[] = [
+          { field: "foo", operator: "nbetween", value: [3, 5, 6] },
+        ]
+        const builder = new FilterBuilder(filters)
+        const bindingString = builder.buildBindingString()
+        const bindingValues = builder.getBindingValues()
+
+        expect(bindingString).toEqual("")
+        expect(bindingValues).toEqual({})
+      })
     })
 
     test("in expression", () => {
@@ -182,8 +210,10 @@ describe("FilterBuilder", () => {
     ])("returns empty string for empty value", (filter) => {
       const builder = new FilterBuilder([filter as CrudFilter])
       const bindingString = builder.buildBindingString()
+      const binidngValues = builder.getBindingValues()
 
       expect(bindingString).toEqual("")
+      expect(binidngValues).toEqual({})
 
     })
   })

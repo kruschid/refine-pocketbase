@@ -9,136 +9,144 @@ type ExpressionBindings = {
   bindings: Record<string, unknown>
 }
 
+type BuilderArgs = {
+  operand1?: string,
+  operand2?: unknown | unknown[],
+  filters?: CrudFilter[]
+}
+
 // Higher order function for simple `<operator1> <operand> <operator2>` query builder
-const defaultNanoidExpression = (operator: string) => (operand1: string, operand2: unknown): ExpressionBindings => {
+const defaultUidExpression = (operator: string) => ({ operand1, operand2 }: BuilderArgs): ExpressionBindings => {
   const id = uid()
   return { expression: `${operand1} ${operator} {:${id}}`, bindings: { [id]: operand2 } }
 }
 
 const OPERATOR_MAP = {
   eq: {
-    exprBuilder: defaultNanoidExpression("="),
+    exprBuilder: defaultUidExpression("="),
   },
   ne: {
-    exprBuilder: defaultNanoidExpression("!="),
+    exprBuilder: defaultUidExpression("!="),
   },
   lt: {
-    exprBuilder: defaultNanoidExpression("<"),
+    exprBuilder: defaultUidExpression("<"),
   },
   gt: {
-    exprBuilder: defaultNanoidExpression(">"),
+    exprBuilder: defaultUidExpression(">"),
   },
   lte: {
-    exprBuilder: defaultNanoidExpression("<="),
+    exprBuilder: defaultUidExpression("<="),
   },
   gte: {
-    exprBuilder: defaultNanoidExpression(">="),
+    exprBuilder: defaultUidExpression(">="),
   },
   contains: {
-    exprBuilder: defaultNanoidExpression("~"),
+    exprBuilder: defaultUidExpression("~"),
   },
   ncontains: {
-    exprBuilder: defaultNanoidExpression("!~"),
+    exprBuilder: defaultUidExpression("!~"),
   },
   containss: {
-    exprBuilder: defaultNanoidExpression("~"),
+    exprBuilder: defaultUidExpression("~"),
   },
   ncontainss: {
-    exprBuilder: defaultNanoidExpression("!~"),
+    exprBuilder: defaultUidExpression("!~"),
   },
   startswith: {
-    exprBuilder: defaultNanoidExpression("~"),
+    exprBuilder: defaultUidExpression("~"),
   },
   nstartswith: {
-    exprBuilder: defaultNanoidExpression("!~"),
+    exprBuilder: defaultUidExpression("!~"),
   },
   startswiths: {
-    exprBuilder: defaultNanoidExpression("~"),
+    exprBuilder: defaultUidExpression("~"),
   },
   nstartswiths: {
-    exprBuilder: defaultNanoidExpression("!~"),
+    exprBuilder: defaultUidExpression("!~"),
   },
   endswith: {
-    exprBuilder: defaultNanoidExpression("~"),
+    exprBuilder: defaultUidExpression("~"),
   },
   nendswith: {
-    exprBuilder: defaultNanoidExpression("!~"),
+    exprBuilder: defaultUidExpression("!~"),
   },
   endswiths: {
-    exprBuilder: defaultNanoidExpression("~"),
+    exprBuilder: defaultUidExpression("~"),
   },
   nendswiths: {
-    exprBuilder: defaultNanoidExpression("!~"),
+    exprBuilder: defaultUidExpression("!~"),
   },
   null: {
-    exprBuilder: (operand1: string, operand2: unknown): ExpressionBindings => {
+    exprBuilder: ({ operand1, operand2 }: BuilderArgs): ExpressionBindings => {
       return {
-        expression: operand2 === true ? `${operand1} = null` : `${operand1} != null`,
+        expression: operand2 as boolean === true ? `${operand1} = null` : `${operand1} != null`,
         bindings: {}
       }
     },
   },
   nnull: {
-    exprBuilder: (operand1: string, operand2: unknown): ExpressionBindings => {
+    exprBuilder: ({ operand1, operand2 }: BuilderArgs): ExpressionBindings => {
       return {
-        expression: operand2 === true ? `${operand1} != null` : `${operand1} = null`,
+        expression: operand2 as boolean === true ? `${operand1} != null` : `${operand1} = null`,
         bindings: {}
       }
     },
   },
   between: {
-    exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
-      if (operand2.length == 0 || operand2.length > 2) {
+    exprBuilder: ({ operand1, operand2 }: BuilderArgs): ExpressionBindings => {
+      const operands = operand2 as unknown[]
+      if (operands.length == 0 || operands.length > 2) {
         return { expression: "", bindings: {} }
       }
 
       const [id1, id2] = [uid(), uid()]
       return {
         expression: `(${operand1} >= {:${id1}} && ${operand1} <= {:${id2}})`,
-        bindings: { [id1]: operand2[0], [id2]: operand2[1] }
+        bindings: { [id1]: operands[0], [id2]: operands[1] }
       }
     },
   },
   nbetween: {
-    exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
-      if (operand2.length == 0 || operand2.length > 2) {
+    exprBuilder: ({ operand1, operand2 }: BuilderArgs): ExpressionBindings => {
+      const operands = operand2 as unknown[]
+      if (operands.length == 0 || operands.length > 2) {
         return { expression: "", bindings: {} }
       }
 
       const [id1, id2] = [uid(), uid()]
       return {
         expression: `(${operand1} < {:${id1}} && ${operand1} > {:${id2}})`,
-        bindings: { [id1]: operand2[0], [id2]: operand2[1] }
+        bindings: { [id1]: operands[0], [id2]: operands[1] }
       }
     },
   },
   in: {
-    exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
-      const ids = operand2.map(v => uid())
-      const bindings = operand2.map((operand, i) => [ids[i], operand])
+    exprBuilder: ({ operand1, operand2 }: BuilderArgs): ExpressionBindings => {
+      const operators = operand2 as unknown[]
+      const ids = operators.map(v => uid())
+      const bindings = operators.map((operand, i) => [ids[i], operand])
       return {
-        expression: operand2.map(value => `${operand1} = {:${value}}`).join(" || "),
+        expression: operators.map(value => `${operand1} = {:${value}}`).join(" || "),
         bindings: Object.fromEntries(bindings)
       }
     },
   },
   nin: {
-    exprBuilder: (operand1: string, operand2: unknown[]): ExpressionBindings => {
-      const ids = operand2.map(v => uid())
-      const bindings = operand2.map((operand, i) => [ids[i], operand])
+    exprBuilder: ({ operand1, operand2 }: BuilderArgs): ExpressionBindings => {
+      const operators = operand2 as unknown[]
+      const ids = operators.map(v => uid())
+      const bindings = operators.map((operand, i) => [ids[i], operand])
       return {
-        expression: operand2.map(value => `${operand1} != {:${value}}`).join(" || "),
+        expression: operators.map(value => `${operand1} != {:${value}}`).join(" || "),
         bindings: Object.fromEntries(bindings)
       }
     },
   },
-  ina: undefined,
-  nina: undefined,
   or: {
-    exprBuilder: (filters: CrudFilter[]): ExpressionBindings => {
+    exprBuilder: ({ filters }: BuilderArgs): ExpressionBindings => {
       let bindings = {}
       const expression =
-        filters.map(filter => {
+        filters!.map(filter => {
           const builder = new FilterBuilder([filter])
           const expression = builder.buildBindingString()
           const currBindings = builder.getBindingValues()
@@ -153,9 +161,9 @@ const OPERATOR_MAP = {
     }
   },
   and: {
-    exprBuilder: (filters: CrudFilter[]): ExpressionBindings => {
+    exprBuilder: ({ filters }: BuilderArgs): ExpressionBindings => {
       let bindings = {}
-      const expression = filters.map(filter => {
+      const expression = filters!.map(filter => {
         const builder = new FilterBuilder([filter])
         const expression = builder.buildBindingString()
         const currBindings = builder.getBindingValues()
@@ -169,6 +177,8 @@ const OPERATOR_MAP = {
       return { expression, bindings }
     }
   },
+  ina: undefined,
+  nina: undefined,
 };
 
 export class FilterBuilder {
@@ -190,8 +200,8 @@ export class FilterBuilder {
 
         const { expression, bindings } =
           this.isConditionalFilter(filter) ?
-            operator.exprBuilder(filter.value) // TODO: fix this compilation
-            : operator.exprBuilder(filter.field, filter.value)
+            operator.exprBuilder({ filters: filter.value })
+            : operator.exprBuilder({ operand1: filter.field, operand2: filter.value })
 
         this.bindingValues = { ...this.bindingValues, ...bindings }
         return expression
