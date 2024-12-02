@@ -1,6 +1,7 @@
 import { AuthBindings, UpdatePasswordFormTypes } from "@refinedev/core";
 import type PocketBase from "pocketbase";
 import { isClientResponseError, toHttpError } from "./utils";
+import { OAuth2AuthConfig } from "pocketbase";
 
 export interface LoginWithProvider {
   providerName: string;
@@ -11,7 +12,7 @@ export interface LoginWithPassword {
   remember: boolean;
 }
 
-export type LoginOptions = LoginWithProvider | LoginWithPassword;
+export type LoginOptions = OAuth2AuthConfig | LoginWithPassword;
 
 export interface AuthOptions {
   collection?: string;
@@ -125,9 +126,10 @@ export const authProvider = (
     login: async (loginOptions: LoginOptions) => {
       try {
         if (isLoginWithProvider(loginOptions)) {
+          const { provider, ...oauthOptions } = loginOptions as OAuth2AuthConfig
           await pb
             .collection(options.collection)
-            .authWithOAuth2({ provider: loginOptions.providerName });
+            .authWithOAuth2({ provider: loginOptions.providerName, ...oauthOptions });
           if (pb.authStore.isValid) {
             return {
               success: true,
