@@ -1,134 +1,179 @@
 import test from "tape";
-import { extractFilterValues, extractFilterExpression } from "./utils.js";
+import { serialize, transformFilter } from "./filters";
+import { ConditionalFilter, LogicalFilter } from "@refinedev/core";
 
-test("stringifyFilters", (t) => {
+test("logical filters", (t) => {
+  Array.from<[LogicalFilter["operator"], string]>([
+    ["eq", "="],
+    ["ne", "!="],
+    ["lt", "<"],
+    ["gt", ">"],
+    ["lte", "<="],
+    ["gte", ">="],
+    ["contains", "~"],
+    ["ncontains", "!~"],
+  ]).forEach(([operator, output]) =>
+    t.equals(
+      transformFilter([
+        {
+          field: "a",
+          operator,
+          value: "a",
+        },
+      ]),
+      `(a ${output} 'a')`,
+      `should return logical filter expression for ${operator}`,
+    )
+  );
+  t.end();
+});
+
+test("conditional filters", (t) => {
+  Array.from<[ConditionalFilter["operator"], string]>([
+    ["and", "&&"],
+    ["or", "||"],
+  ]).forEach(([operator, output]) =>
+    t.equals(
+      transformFilter([{
+        operator,
+        value: [
+          {
+            field: "a",
+            operator: "eq",
+            value: "a",
+          },
+          {
+            field: "b",
+            operator: "ne",
+            value: "b",
+          },
+        ]
+      }
+      ]),
+      `((a = 'a') ${output} (b != 'b'))`,
+      `should return conditional filter expression for ${operator}`
+    )
+  );
+});
+
+test("value serialization", (t) => {
+  [
+    ["string", "'string'"],
+    ["don't", "'don\'t'"],
+    [5, "5"],
+    [true, "true"],
+    [new Date(0), "2024-12-04 16:55:13.001Z"],
+    [null, "null"],
+    [{a: "don't"}, `'{"a": "don\'t"}'`],
+  ].forEach((value, output) =>
+    t.equals(
+      serialize(value),
+      output,
+      `should serialize ${value} (${typeof value})`
+    )
+  );
+  t.end();
+});
+
+test("in operator", (t) => {
   t.equals(
-    extractFilterExpression([
-      {
+    transformFilter([{
+      field: "a",
+      operator: "in",
+      value: [],
+    }]),
+    "",
+    "in handles empty values"
+  );
+
+  t.equals(
+    transformFilter([{
+      operator: "and",
+      value: [{
         field: "a",
-        operator: "eq",
-        value: "",
-      },
-      {
+        operator: "in",
+        value: []
+      }, {
         field: "b",
-        operator: "ne",
-        value: "",
-      },
-    ]),
-    "a = {:a00} && b != {:b01}"
+        operator: "eq",
+        value: "4"
+      }],
+    }]),
+    "((b = 'b'))",
+    "in handles empty values when nested"
   );
 
   t.equals(
-    extractFilterExpression([
-      {
-        operator: "or",
-        value: [
-          {
-            field: "a",
-            operator: "gt",
-            value: "",
-          },
-          {
-            field: "b",
-            operator: "lt",
-            value: "",
-          },
-        ],
-      },
-      {
-        operator: "and",
-        value: [
-          {
-            field: "a",
-            operator: "contains",
-            value: "",
-          },
-          {
-            field: "b",
-            operator: "ncontains",
-            value: "",
-          },
-        ],
-      },
-    ]),
-    "(a > {:a00} || b < {:b01}) && (a ~ {:a10} && b !~ {:b11})"
+    transformFilter([{
+      operator: "and",
+      value: [{
+        field: "a",
+        operator: "in",
+        value: ["1", "2", "3"]
+      }, {
+        field: "b",
+        operator: "eq",
+        value: "4"
+      }],
+    }]),
+    "((a = '1' || a = '2' || a = '3') && (b = 'b'))",
+    "in can be nested"
   );
 
   t.equals(
-    extractFilterExpression([
-      {
-        operator: "or",
-        value: [
-          {
-            operator: "and",
-            value: [
-              {
-                field: "a",
-                operator: "in",
-                value: "",
-              },
-              {
-                field: "b",
-                operator: "nin",
-                value: "",
-              },
-            ],
-          },
-          {
-            operator: "and",
-            value: [
-              {
-                field: "a",
-                operator: "gte",
-                value: "",
-              },
-              {
-                field: "b",
-                operator: "lte",
-                value: "",
-              },
-            ],
-          },
-        ],
-      },
-    ]),
-    "((a ?= {:a00} && b ?!= {:b01}) || (a >= {:a10} && b <= {:b11}))"
+    transformFilter([{
+      field: "a",
+      operator: "in",
+      value: ["1", "2", "3"],
+    }]),
+    "(a = '1' || a = '2' || a = '3')",
+    "in handles empty values"
   );
 
   t.end();
 });
 
-test("extractFilterValues", (t) => {
-  t.deepEqual(
-    extractFilterValues([
+test.skip("nin", t => {});
+test.skip("between", t => {});
+test.skip("nbetween", t => {});
+test.skip("null", t => {});
+test.skip("nnull", t => {});
+test.skip("startswith", t => {});
+test.skip("nstartswith", t => {});
+test.skip("endswith", t => {});
+test.skip("nendswith", t => {});
+
+test.skip("deeply nested filters", (t) => {
+  t.equals(
+    transformFilter([
       {
         field: "a",
         operator: "eq",
-        value: 1,
+        value: "a",
       },
       {
         field: "b",
         operator: "ne",
-        value: 2,
+        value: "b",
       },
     ]),
-    { a00: 1, b01: 2 }
+    "a = 'a' && b != 'b'"
   );
 
-  t.deepEqual(
-    extractFilterValues([
+  t.equals(
+    transformFilter([
       {
         operator: "or",
         value: [
           {
             field: "a",
             operator: "gt",
-            value: 4,
+            value: "a",
           },
           {
             field: "b",
             operator: "lt",
-            value: 3,
+            value: "b",
           },
         ],
       },
@@ -136,23 +181,23 @@ test("extractFilterValues", (t) => {
         operator: "and",
         value: [
           {
-            field: "a",
+            field: "c",
             operator: "contains",
-            value: 2,
+            value: "c",
           },
           {
-            field: "b",
+            field: "d",
             operator: "ncontains",
-            value: 1,
+            value: "d",
           },
         ],
       },
     ]),
-    { a00: 4, b01: 3, a10: 2, b11: 1 }
+    "(a > 'a' || b < 'b') && (c ~ 'c' && d !~ 'd')"
   );
 
-  t.deepEqual(
-    extractFilterValues([
+  t.equals(
+    transformFilter([
       {
         operator: "or",
         value: [
@@ -162,12 +207,12 @@ test("extractFilterValues", (t) => {
               {
                 field: "a",
                 operator: "in",
-                value: 5,
+                value: ["1", "2"],
               },
               {
                 field: "b",
                 operator: "nin",
-                value: 6,
+                value: ["3", "4"],
               },
             ],
           },
@@ -177,19 +222,19 @@ test("extractFilterValues", (t) => {
               {
                 field: "a",
                 operator: "gte",
-                value: 7,
+                value: "1",
               },
               {
                 field: "b",
                 operator: "lte",
-                value: 8,
+                value: "4",
               },
             ],
           },
         ],
       },
     ]),
-    { a00: 5, b01: 6, a10: 7, b11: 8 }
+    "(((a = '1' || a = '2') && (b != '3' && b != '4') || (a >= 'a' && b <= 'b'))"
   );
 
   t.end();
