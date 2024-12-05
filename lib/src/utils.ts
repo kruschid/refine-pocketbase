@@ -1,6 +1,4 @@
-import {
-  HttpError
-} from "@refinedev/core";
+import { HttpError } from "@refinedev/core";
 import { ClientResponseError } from "pocketbase";
 
 export const isClientResponseError = (x: any): x is ClientResponseError =>
@@ -13,9 +11,9 @@ export const toHttpError = (e: ClientResponseError): HttpError => ({
   message: e.message,
   statusCode: e.status,
   errors: Object.keys(e.response.data).reduce(
-    (acc, withSuffix) => ({
+    (acc, next) => ({
       ...acc,
-      [withSuffix]: (e as ClientResponseError).response.data[withSuffix].message,
+      [next]: (e as ClientResponseError).response.data[next].message,
     }),
     {}
   ),
