@@ -2,47 +2,43 @@ import {
   ConditionalFilter,
   CrudFilter,
   CrudFilters,
-  LogicalFilter
+  LogicalFilter,
 } from "@refinedev/core";
 
-type FilterValue = string | number | boolean | Date | object;
+export type FilterValue = string | number | boolean | Date | null | object;
 
 type TypedLogicalFilter<T = FilterValue> = Omit<LogicalFilter, "value"> & {
   value: T;
-}
+};
 
 type ExpressionFn = (filter: TypedLogicalFilter<any>) => string | undefined;
 
 export const serialize = (value: FilterValue) => {
   // https://github.com/pocketbase/js-sdk/blob/848b77d467b093c6bfbb19799e54af3b7909222e/src/Client.ts#L271
-  let val = value;
-  switch (typeof val) {
-    case "boolean":
-    case "number":
-      val = "" + val;
-      break;
-    case "string":
-      val = "'" + val.replace(/'/g, "\\'") + "'";
-      break;
-    default:
-      if (val === null) {
-        val = "null";
-      } else if (val instanceof Date) {
-        val = "'" + val.toISOString().replace("T", " ") + "'";
-      } else {
-        val = "'" + JSON.stringify(val).replace(/'/g, "\\'") + "'";
-      }
+  if (
+    typeof value === "boolean" ||
+    typeof value === "number" ||
+    value === null
+  ) {
+    return String(value);
+  } else if (typeof value === "string") {
+    return `'${value.replace(/'/g, "\\'")}'`;
+  } else if (value instanceof Date) {
+    return `'${value.toISOString().replace("T", " ")}'`;
+  } else {
+    return `'${JSON.stringify(value).replace(/'/g, "\\'")}'`;
   }
-  return val;
-}
+};
 
-const escape = (value: string) =>
-  value.replace(/\%/g, "\\%")
+const escape = (value: string) => value.replace(/\%/g, "\\%");
 
 const defaultExpression = (operator?: string) => (filter: TypedLogicalFilter) =>
-  `${filter.field} ${operator} ${serialize(filter.field)}`;
+  `${filter.field} ${operator} ${serialize(filter.value)}`;
 
-const logicalOperators: Record<LogicalFilter["operator"], ExpressionFn | undefined> = {
+const logicalOperators: Record<
+  LogicalFilter["operator"],
+  ExpressionFn | undefined
+> = {
   eq: defaultExpression("="),
   ne: defaultExpression("!="),
   lt: defaultExpression("<"),
@@ -51,11 +47,11 @@ const logicalOperators: Record<LogicalFilter["operator"], ExpressionFn | undefin
   gte: defaultExpression(">="),
   in: (filter: TypedLogicalFilter<FilterValue[]>) =>
     filter.value
-      .map(value => `${filter.field} = ${serialize(value)}`)
+      .map((value) => `${filter.field} = ${serialize(value)}`)
       .join(" || ") || undefined,
   nin: (filter: TypedLogicalFilter<FilterValue[]>) =>
     filter.value
-      .map(value => `${filter.field} != ${serialize(value)}`)
+      .map((value) => `${filter.field} != ${serialize(value)}`)
       .join(" && ") || undefined,
   ina: undefined,
   nina: undefined,
@@ -63,23 +59,41 @@ const logicalOperators: Record<LogicalFilter["operator"], ExpressionFn | undefin
   ncontains: defaultExpression("!~"),
   containss: undefined,
   ncontainss: undefined,
-  between: ({field, value: [min, max]}: TypedLogicalFilter<[FilterValue, FilterValue]>) =>
-      `${field} >= ${serialize(min)} && ${field} <= ${serialize(max)}`,
-  nbetween: ({field, value: [min, max]}: TypedLogicalFilter<[FilterValue, FilterValue]>) =>
-    `${field} < ${serialize(min)} || ${field} > ${serialize(max)}`,
-  null: ({field, value}: TypedLogicalFilter<boolean>) =>
-    value === true ? `${field} = null` : undefined,
-  nnull: ({field, value}: TypedLogicalFilter<boolean>) =>
-    value === true ? `${field} != null` : undefined,
-  startswith: ({field, value}: TypedLogicalFilter<string>) =>
+  between: ({
+    field,
+    value,
+  }: TypedLogicalFilter<[FilterValue, FilterValue]>) => {
+    const op = [">=", "<="];
+    return value
+      .flatMap((val, i) =>
+        val != null ? `${field} ${op[i]} ${serialize(val)}` : []
+      )
+      .join(" && ");
+  },
+  nbetween: ({
+    field,
+    value,
+  }: TypedLogicalFilter<[FilterValue, FilterValue]>) => {
+    const op = ["<", ">"];
+    return value
+      .flatMap((val, i) =>
+        val != null ? `${field} ${op[i]} ${serialize(val)}` : []
+      )
+      .join(" || ");
+  },
+  null: ({ field, value }: TypedLogicalFilter<boolean>) =>
+    value === true ? `${field} = null` : `${field} != null`,
+  nnull: ({ field, value }: TypedLogicalFilter<boolean>) =>
+    value === true ? `${field} != null` : `${field} = null`,
+  startswith: ({ field, value }: TypedLogicalFilter<string>) =>
     `${field} = '${escape(value)}%'`,
-  nstartswith: ({field, value}: TypedLogicalFilter<string>) =>
+  nstartswith: ({ field, value }: TypedLogicalFilter<string>) =>
     `${field} != '${escape(value)}%'`,
   startswiths: undefined,
   nstartswiths: undefined,
-  endswith: ({field, value}: TypedLogicalFilter<string>) =>
+  endswith: ({ field, value }: TypedLogicalFilter<string>) =>
     `${field} = '%${escape(value)}'`,
-  nendswith: ({field, value}: TypedLogicalFilter<string>) =>
+  nendswith: ({ field, value }: TypedLogicalFilter<string>) =>
     `${field} != '%${escape(value)}'`,
   endswiths: undefined,
   nendswiths: undefined,
@@ -98,15 +112,17 @@ const isConditionalFilter = (filter: CrudFilter): filter is ConditionalFilter =>
 
 const getExpression = (filter: TypedLogicalFilter) => {
   const expressionFn = logicalOperators[filter.operator];
-  if(!expressionFn) {
-    throw Error(`operator "${filter.operator}" is not supported by refine-pocketbase`);
+  if (!expressionFn) {
+    throw Error(
+      `operator "${filter.operator}" is not supported by refine-pocketbase`
+    );
   }
   return expressionFn(filter);
-}
+};
 
 export const transformFilter = (
   filters: CrudFilters,
-  joinOperator: ConditionalFilter["operator"] = "and",
+  joinOperator: ConditionalFilter["operator"] = "and"
 ) =>
   filters
     .map((filter): string | undefined =>
