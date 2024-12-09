@@ -53,6 +53,44 @@ Here `fields` is an array of strings limiting the fields to return in the server
 
 A couple of other refine hooks and components like `useOne`, `useTable`, `<Show/>`, `<List/>`, etc. will support the meta props `fields` and `expand` if used with the refine-pocketbase data provider.
 
+### Filtering with `in` and `nin`
+
+The `in` or `nin` filters expect an array as value as show in the code fragment below.
+
+``` ts
+{
+  field: "a",
+  operator: "in",
+  value: [1, 2, 3],
+}
+```
+
+This expression will be transformed to a pocketbase filter expression `(a = 1 || a = 2 || a = 3)`.
+
+A similar expression using `nin` filter will be transformed to `b != 1 && b != 2 && b != 3`.
+
+Setting an empty array `[]` as a filter value will cause the `in` or `nin` filter to be excluded from the resulting filter expression.
+
+### Filtering with `between` and `nbetween`
+
+The `between` or `nbetween` filters expect a tuple `[min, max]` as value as show in the code fragment below.
+
+``` ts
+{
+  field: "a",
+  operator: "between",
+  value: [1, 2],
+}
+```
+
+This expression will be transformed to a pocketbase filter expression `(a >= 1 && a <= 2)`.
+
+The same expression but with `nin` as the operator will be transformed to `(a < 1 || a > 2)`.
+
+Partial tuples in form of `[min, undefined/null]` or `[undefined/null, max]` are possible as well and would omit either one side of the join operator.
+
+An empty tuple `[]` will cause the filter to be excluded from the resulting filter.
+
 ### Custom Endpoints with `useCustom` Hook
 
 The `useCustom` hook allows you to make custom API calls to your PocketBase backend. This is particularly useful when you need to interact with custom PocketBase endpoints.
@@ -66,7 +104,6 @@ const { data, isLoading } = useCustom({
     method: "get",
   });
 ```
-
 
 ## Auth Provider
 

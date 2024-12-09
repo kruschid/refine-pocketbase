@@ -8,11 +8,10 @@ import {
 } from "@refinedev/core";
 import PocketBase, { RecordListOptions, SendOptions } from "pocketbase";
 import {
-  extractFilterExpression,
-  extractFilterValues,
   isClientResponseError,
   toHttpError,
 } from "./utils";
+import { transformFilter } from "./filters";
 
 export const dataProvider = (
   pb: PocketBase
@@ -27,17 +26,10 @@ export const dataProvider = (
       ?.map((s) => `${s.order === "desc" ? "-" : ""}${s.field}`)
       .join(",");
 
-    const filter = filters
-      ? pb.filter(
-          extractFilterExpression(filters),
-          extractFilterValues(filters)
-        )
-      : undefined;
-
     const options: RecordListOptions = {
       requestKey: meta?.requestKey ?? null,
       ...(sort ? { sort } : {}),
-      ...(filter ? { filter } : {}),
+      ...(filters ? { filter: transformFilter(filters) } : {}),
       ...(meta?.expand ? { expand: meta?.expand.join(",") } : {}),
       ...(meta?.fields ? { fields: meta?.fields?.join(",") } : {}),
     };
