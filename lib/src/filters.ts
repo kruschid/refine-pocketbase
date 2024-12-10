@@ -48,11 +48,11 @@ const logicalOperators: Record<
   in: (filter: TypedLogicalFilter<FilterValue[]>) =>
     filter.value
       .map((value) => `${filter.field} = ${serialize(value)}`)
-      .join(" || ") || undefined,
+      .join(" || "),
   nin: (filter: TypedLogicalFilter<FilterValue[]>) =>
     filter.value
       .map((value) => `${filter.field} != ${serialize(value)}`)
-      .join(" && ") || undefined,
+      .join(" && "),
   ina: undefined,
   nina: undefined,
   contains: defaultExpression("~"),
