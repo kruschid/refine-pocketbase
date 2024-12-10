@@ -1,10 +1,12 @@
 import { AuthBindings, UpdatePasswordFormTypes } from "@refinedev/core";
 import type PocketBase from "pocketbase";
 import { isClientResponseError, toHttpError } from "./utils";
+import { OAuth2AuthConfig } from "pocketbase";
 
-export interface LoginWithProvider {
-  providerName: string;
+export interface LoginWithProvider extends OAuth2AuthConfig {
+  providerName: string; // providerName prop is used by several AuthPage implementations
 }
+
 export interface LoginWithPassword {
   email: string;
   password: string;
@@ -127,7 +129,7 @@ export const authProvider = (
         if (isLoginWithProvider(loginOptions)) {
           await pb
             .collection(options.collection)
-            .authWithOAuth2({ provider: loginOptions.providerName });
+            .authWithOAuth2({ ...loginOptions, provider: loginOptions.providerName });
           if (pb.authStore.isValid) {
             return {
               success: true,
