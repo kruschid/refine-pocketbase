@@ -3,16 +3,17 @@ import type PocketBase from "pocketbase";
 import { isClientResponseError, toHttpError } from "./utils";
 import { OAuth2AuthConfig } from "pocketbase";
 
-export interface LoginWithProvider {
-  providerName: string;
+export interface LoginWithProvider extends OAuth2AuthConfig {
+  providerName: string; // providerName prop is used by several AuthPage implementations
 }
+
 export interface LoginWithPassword {
   email: string;
   password: string;
   remember: boolean;
 }
 
-export type LoginOptions = OAuth2AuthConfig | LoginWithPassword;
+export type LoginOptions = LoginWithProvider | LoginWithPassword;
 
 export interface AuthOptions {
   collection?: string;
@@ -126,10 +127,9 @@ export const authProvider = (
     login: async (loginOptions: LoginOptions) => {
       try {
         if (isLoginWithProvider(loginOptions)) {
-          const { provider, ...oauthOptions } = loginOptions as OAuth2AuthConfig
           await pb
             .collection(options.collection)
-            .authWithOAuth2({ provider: loginOptions.providerName, ...oauthOptions });
+            .authWithOAuth2({ ...loginOptions, provider: loginOptions.providerName });
           if (pb.authStore.isValid) {
             return {
               success: true,
