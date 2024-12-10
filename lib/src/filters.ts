@@ -65,6 +65,7 @@ const logicalOperators: Record<
   }: TypedLogicalFilter<[FilterValue, FilterValue]>) => {
     const op = [">=", "<="];
     return value
+      .slice(0, 2)
       .flatMap((val, i) =>
         val != null ? `${field} ${op[i]} ${serialize(val)}` : []
       )
@@ -76,6 +77,7 @@ const logicalOperators: Record<
   }: TypedLogicalFilter<[FilterValue, FilterValue]>) => {
     const op = ["<", ">"];
     return value
+      .slice(0, 2)
       .flatMap((val, i) =>
         val != null ? `${field} ${op[i]} ${serialize(val)}` : []
       )
