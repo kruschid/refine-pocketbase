@@ -3,7 +3,7 @@
 [![NPM](https://img.shields.io/npm/l/@mantine/core)](https://github.com/kruschid/refine-pocketbase/blob/master/LICENSE)
 [![GitHub contributors](https://img.shields.io/github/contributors/kruschid/refine-pocketbase)](https://github.com/kruschid/refine-pocketbase/graphs/contributors)
 [![npm](https://img.shields.io/npm/v/refine-pocketbase)](https://www.npmjs.com/package/refine-pocketbase)
-[![Discord](https://img.shields.io/badge/Chat%20on-Discord-%235865f2)](https://discord.gg/MnzrbHYN)
+[![Discord](https://img.shields.io/badge/Chat%20on-Discord-%235865f2)](https://discord.gg/BCGmvSSJBk)
 
 ![pb](https://github.com/necatiozmen/refine-pocketbase/assets/18739364/4c5e6c43-42f3-4d7f-88c2-74970144308b)
 
