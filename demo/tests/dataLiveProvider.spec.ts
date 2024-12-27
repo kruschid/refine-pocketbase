@@ -3,7 +3,7 @@ import PocketBase from "pocketbase";
 import { expect, test } from "@playwright/test";
 
 const PB_URL = "http://127.0.0.1:8090";
-const EMAIL = `test-appuser@example.com`;
+const EMAIL = `test-user@example.com`;
 const PASSWORD = "1234567890";
 
 const pb = new PocketBase(PB_URL);

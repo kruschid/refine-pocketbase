@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { v4 as uuidv4 } from "uuid";
 
 const INBUCKET_URL = "http://127.0.0.1:9000";
-const EXISTING_EMAIL = "test-appuser@example.com";
+const EXISTING_EMAIL = "test-user@example.com";
 
 test.describe("auth provider", () => {
   test("register and login happy path", async ({ page }) => {
@@ -31,10 +31,15 @@ test.describe("auth provider", () => {
       "Failed to create record."
     );
     expect(await page.textContent("#register-email-error")).toContain(
-      "The email is invalid or already in use."
+      "Value must be unique."
     );
+
+    await page.fill("#register-email", `${uuidv4()}@example.com`);
+    await page.fill("#register-password", "123");
+    await page.click("#register-submit");
+
     expect(await page.textContent("#register-password-error")).toContain(
-      "The length must be between 8 and 72."
+      "Must be at least 8 character(s)."
     );
   });
 
@@ -108,7 +113,7 @@ test.describe("auth provider", () => {
       "Invalid or expired token."
     );
     expect(await page.textContent("#password-input-error")).toContain(
-      "The length must be between 8 and 100."
+      "The length must be between 8 and 255."
     );
     expect(await page.textContent("#confirm-password-input-error")).toContain(
       "Values don't match."

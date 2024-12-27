@@ -1,35 +1,39 @@
 /// <reference path="../pb_data/types.d.ts" />
 migrate(
-  (db) => {
-    const dao = new Dao(db);
+  (app) => {
+    const settings = app.settings();
 
-    const settings = dao.findSettings();
     settings.smtp.enabled = true;
     settings.smtp.host = "inbucket";
     settings.smtp.port = 2500;
-    settings.meta.resetPasswordTemplate.body = "{TOKEN}";
-    dao.saveSettings(settings);
+    app.save(settings);
 
-    const admin = new Admin();
-    admin.email = "test@example.com";
-    admin.setPassword(1234567890);
-    dao.saveAdmin(admin);
+    const usersCollection = app.findCollectionByNameOrId("users");
+    usersCollection.resetPasswordTemplate.body = "{TOKEN}";
+    app.save(usersCollection);
 
-    const collection = dao.findCollectionByNameOrId("users");
+    const superUser = new Record(app.findCollectionByNameOrId("_superusers"), {
+      email: "test@example.com",
+    });
+    superUser.setPassword(1234567890);
+    app.save(superUser);
 
-    const appUser = new Record(collection);
-    appUser.setUsername("testapp.user");
-    appUser.setEmail("test-appuser@example.com");
-    appUser.setPassword(1234567890);
-    appUser.setVerified(true);
-    dao.saveRecord(appUser);
+    const user = new Record(app.findCollectionByNameOrId("users"), {
+      email: "test-user@example.com",
+    });
+    user.setPassword(1234567890);
+    app.save(user);
   },
-  (db) => {
-    const dao = new Dao(db);
-    const admin = dao.findAdminByEmail("test@example.com");
-    const appUser = dao.findAdminByEmail("test-appuser@example.com");
+  (app) => {
+    const superUser = app.findAuthRecordByEmail(
+      "_superusers",
+      "test@example.com"
+    );
 
-    dao.deleteAdmin(admin);
-    dao.deleteRecord(appUser);
+    app.delete(superUser);
+
+    const user = app.findAuthRecordByEmail("users", "test-user@example.com");
+
+    app.delete(user);
   }
 );

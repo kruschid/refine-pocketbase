@@ -1,4 +1,4 @@
-import { AuthBindings, UpdatePasswordFormTypes } from "@refinedev/core";
+import { AuthProvider, UpdatePasswordFormTypes } from "@refinedev/core";
 import type PocketBase from "pocketbase";
 import { isClientResponseError, toHttpError } from "./utils";
 import { OAuth2AuthConfig } from "pocketbase";
@@ -49,7 +49,7 @@ const isLoginWithProvider = (x: any): x is LoginWithProvider =>
 export const authProvider = (
   pb: PocketBase,
   authOptions?: AuthOptions
-): AuthBindings => {
+): AuthProvider => {
   const options: RequiredAuthOptions & AuthOptions = {
     ...defaultOptions,
     ...authOptions,
@@ -129,7 +129,10 @@ export const authProvider = (
         if (isLoginWithProvider(loginOptions)) {
           await pb
             .collection(options.collection)
-            .authWithOAuth2({ ...loginOptions, provider: loginOptions.providerName });
+            .authWithOAuth2({
+              ...loginOptions,
+              provider: loginOptions.providerName,
+            });
           if (pb.authStore.isValid) {
             return {
               success: true,
@@ -186,8 +189,8 @@ export const authProvider = (
     },
     getPermissions: async () => null,
     getIdentity: async () => {
-      if (pb.authStore.isValid && pb.authStore.model) {
-        return pb.authStore.model; // id, name, avatar, ...
+      if (pb.authStore.isValid && pb.authStore.record) {
+        return pb.authStore.record; // id, name, avatar, ...
       }
       return null;
     },

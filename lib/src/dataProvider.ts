@@ -7,10 +7,7 @@ import {
   UpdateResponse,
 } from "@refinedev/core";
 import PocketBase, { RecordListOptions, SendOptions } from "pocketbase";
-import {
-  isClientResponseError,
-  toHttpError,
-} from "./utils";
+import { isClientResponseError, toHttpError } from "./utils";
 import { transformFilter } from "./filters";
 
 export const dataProvider = (
@@ -131,7 +128,7 @@ export const dataProvider = (
   },
 
   getApiUrl: () => {
-    return pb.baseUrl;
+    return pb.baseURL;
   },
   custom: async ({ url, method, payload, query, headers }) => {
     try {
@@ -141,7 +138,7 @@ export const dataProvider = (
         body: payload,
         query: query as Record<string, any>,
       };
-      const response = await pb.send(new URL(url).pathname, options);      
+      const response = await pb.send(new URL(url).pathname, options);
       return {
         data: response,
       } as CustomResponse<any>;
