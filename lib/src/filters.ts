@@ -30,7 +30,7 @@ export const serialize = (value: FilterValue) => {
   }
 };
 
-const escape = (value: string) => value.replace(/\%/g, "\\%");
+const escapeWildcards = (value: string) => value.replace(/\%/g, "\\%");
 
 const defaultExpression = (operator?: string) => (filter: TypedLogicalFilter) =>
   `${filter.field} ${operator} ${serialize(filter.value)}`;
@@ -88,15 +88,15 @@ const logicalOperators: Record<
   nnull: ({ field, value }: TypedLogicalFilter<boolean>) =>
     value === true ? `${field} != null` : `${field} = null`,
   startswith: ({ field, value }: TypedLogicalFilter<string>) =>
-    `${field} ~ '${escape(value)}%'`,
+    `${field} ~ ${serialize(escapeWildcards(value) + "%")}`,
   nstartswith: ({ field, value }: TypedLogicalFilter<string>) =>
-    `${field} !~ '${escape(value)}%'`,
+    `${field} !~ ${serialize(escapeWildcards(value) + "%")}`,
   startswiths: undefined,
   nstartswiths: undefined,
   endswith: ({ field, value }: TypedLogicalFilter<string>) =>
-    `${field} ~ '%${escape(value)}'`,
+    `${field} ~ ${serialize("%" + escapeWildcards(value))}`,
   nendswith: ({ field, value }: TypedLogicalFilter<string>) =>
-    `${field} !~ '%${escape(value)}'`,
+    `${field} !~ ${serialize("%" + escapeWildcards(value))}`,
   endswiths: undefined,
   nendswiths: undefined,
 };
