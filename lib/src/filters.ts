@@ -88,15 +88,15 @@ const logicalOperators: Record<
   nnull: ({ field, value }: TypedLogicalFilter<boolean>) =>
     value === true ? `${field} != null` : `${field} = null`,
   startswith: ({ field, value }: TypedLogicalFilter<string>) =>
-    `${field} = '${escape(value)}%'`,
+    `${field} ~ '${escape(value)}%'`,
   nstartswith: ({ field, value }: TypedLogicalFilter<string>) =>
-    `${field} != '${escape(value)}%'`,
+    `${field} !~ '${escape(value)}%'`,
   startswiths: undefined,
   nstartswiths: undefined,
   endswith: ({ field, value }: TypedLogicalFilter<string>) =>
-    `${field} = '%${escape(value)}'`,
+    `${field} ~ '%${escape(value)}'`,
   nendswith: ({ field, value }: TypedLogicalFilter<string>) =>
-    `${field} != '%${escape(value)}'`,
+    `${field} !~ '%${escape(value)}'`,
   endswiths: undefined,
   nendswiths: undefined,
 };
