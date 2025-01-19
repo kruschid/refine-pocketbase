@@ -9,3 +9,5 @@ updates:
     directory: "/lib" # Location of package manifests
     schedule:
       interval: "daily"
+    allow:
+      - dependency-type: "all"
