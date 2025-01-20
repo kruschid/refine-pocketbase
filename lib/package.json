@@ -27,7 +27,7 @@
     "@refinedev/core": "^4.55.0",
     "@types/tape": "^5.6.4",
     "parcel": "^2.13.3",
-    "pocketbase": "^0.24.0",
+    "pocketbase": "^0.25.1",
     "tape": "^5.9.0",
     "tsimp": "^2.0.12",
     "typescript": "^5.6.3"
