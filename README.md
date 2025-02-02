@@ -134,6 +134,73 @@ const authOptions: AuthOptions = {
 };
 ```
 
+### OAuth2 Configuration
+
+The PocketBase `OAuth2Config` can be set either via the `mutationVariables` prop in [`AuthPage`](https://refine.dev/docs/authentication/components/auth-page/#mutationvariables),
+
+``` ts
+<AuthPage
+  type="login"
+  mutationVariables={{
+    scopes: ["user-read-private", "user-top-read"] 
+  }}
+  providers={[{
+    name: "spotify",
+    label: "Login with Spotify",
+    icon: <SpotifyIcon />
+  }]}
+/>
+```
+
+or imperatively via [`useLogin`](https://refine.dev/docs/authentication/hooks/use-login/#usage):
+
+``` ts
+import { LoginWithProvider } from "refine-pocketbase";
+
+const { mutate: login } = useLogin<LoginWithProvider>();
+
+login({
+  scopes: ["user-read-private", "user-top-read"],
+  providerName: "spotify"
+});
+```
+
+For improved type safety, `refine-pocketbase` exports the `LoginWithProvider` type. With this, TypeScript can warn you if a property name or value type is incorrect and provide you with autocompletion for a better developer experience.
+
+### Password-Based Auth Options
+
+For password-based authentication, you can pass an optional `options` property that meets PocketBase's `RecordOptions` interface.
+
+``` ts
+import { LoginWithPassword } from "refine-pocketbase";
+
+const { mutate: login } = useLogin<LoginWithPassword>();
+
+login({
+  email: "user@example.com",
+  password: "********",
+  options: {
+    expand: "orgs,permissions"
+    headers: { key: "value" },
+    ... // more RecordOptions props
+  },
+});
+
+// similar scenario but using AuthPage:
+<AuthPage
+  type="login"
+  mutationVariables={{
+    email: "user@example.com",
+    password: "********",
+    options: {
+      expand: "orgs,permissions"
+      headers: { key: "value" },
+      ... // more RecordOptions props
+    },
+  }}
+/>
+```
+
 ## Features
 
 - [x] auth provider

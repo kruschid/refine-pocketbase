@@ -1,5 +1,6 @@
-import { LoginFormTypes, useLink, useLogin, useTranslate } from "@refinedev/core";
+import { useLink, useLogin, useTranslate } from "@refinedev/core";
 import React, { useState } from "react";
+import { LoginWithPassword } from "refine-pocketbase";
 
 export const LoginPage: React.FC = () => {
   const Link = useLink();
@@ -8,7 +9,7 @@ export const LoginPage: React.FC = () => {
   const [password, setPassword] = useState("");
 
   const translate = useTranslate();
-  const { mutate: login } = useLogin<LoginFormTypes>();
+  const { mutate: login } = useLogin<LoginWithPassword>();
 
   return (
     <div>

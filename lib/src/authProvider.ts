@@ -1,16 +1,16 @@
 import { AuthProvider, UpdatePasswordFormTypes } from "@refinedev/core";
 import type PocketBase from "pocketbase";
+import { OAuth2AuthConfig, RecordOptions } from "pocketbase";
 import { isClientResponseError, toHttpError } from "./utils";
-import { OAuth2AuthConfig } from "pocketbase";
 
 export interface LoginWithProvider extends OAuth2AuthConfig {
-  providerName: string; // providerName prop is used by several AuthPage implementations
+  providerName?: string; // providerName prop is used by several AuthPage implementations
 }
 
 export interface LoginWithPassword {
   email: string;
   password: string;
-  remember: boolean;
+  options?: RecordOptions;
 }
 
 export type LoginOptions = LoginWithProvider | LoginWithPassword;
@@ -44,7 +44,7 @@ const defaultOptions: RequiredAuthOptions = {
 };
 
 const isLoginWithProvider = (x: any): x is LoginWithProvider =>
-  typeof x.providerName === "string";
+  typeof x.providerName === "string" || typeof x.provider === "string";
 
 export const authProvider = (
   pb: PocketBase,
@@ -127,12 +127,10 @@ export const authProvider = (
     login: async (loginOptions: LoginOptions) => {
       try {
         if (isLoginWithProvider(loginOptions)) {
-          await pb
-            .collection(options.collection)
-            .authWithOAuth2({
-              ...loginOptions,
-              provider: loginOptions.providerName,
-            });
+          await pb.collection(options.collection).authWithOAuth2({
+            ...loginOptions,
+            provider: loginOptions.providerName ?? loginOptions.provider,
+          });
           if (pb.authStore.isValid) {
             return {
               success: true,
@@ -143,6 +141,7 @@ export const authProvider = (
           await pb
             .collection(options.collection)
             .authWithPassword(loginOptions.email, loginOptions.password, {
+              ...loginOptions.options,
               requestKey: null,
             });
           if (pb.authStore.isValid) {
