@@ -142,12 +142,12 @@ The PocketBase `OAuth2Config` can be set either via the `mutationVariables` prop
 <AuthPage
   type="login"
   mutationVariables={{
-    scopes: ["user-read-private", "user-top-read"] 
+    scopes: ["user-read-private", "user-top-read"],
   }}
   providers={[{
     name: "spotify",
     label: "Login with Spotify",
-    icon: <SpotifyIcon />
+    icon: <SpotifyIcon />,
   }]}
 />
 ```
@@ -161,7 +161,7 @@ const { mutate: login } = useLogin<LoginWithProvider>();
 
 login({
   scopes: ["user-read-private", "user-top-read"],
-  providerName: "spotify"
+  providerName: "spotify",
 });
 ```
 
@@ -180,7 +180,7 @@ login({
   email: "user@example.com",
   password: "********",
   options: {
-    expand: "orgs,permissions"
+    expand: "orgs,permissions",
     headers: { key: "value" },
     ... // more RecordOptions props
   },
@@ -193,7 +193,7 @@ login({
     email: "user@example.com",
     password: "********",
     options: {
-      expand: "orgs,permissions"
+      expand: "orgs,permissions",
       headers: { key: "value" },
       ... // more RecordOptions props
     },
