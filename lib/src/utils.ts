@@ -3,6 +3,7 @@ import { ClientResponseError } from "pocketbase";
 
 export const isClientResponseError = (x: any): x is ClientResponseError =>
   typeof x.response === "object" &&
+  typeof x.response.data === "object" &&
   typeof x.isAbort === "boolean" &&
   typeof x.url === "string" &&
   typeof x.status === "number";
