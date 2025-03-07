@@ -11,7 +11,7 @@
 
 ## Installation
 
-``` sh
+```sh
 npm install refine-pocketbase
 ```
 
@@ -19,7 +19,7 @@ npm install refine-pocketbase
 
 ### Basic Usage
 
-``` tsx
+```tsx
 import PocketBase from "pocketbase";
 import { authProvider, dataProvider, liveProvider } from "refine-pocketbase";
 
@@ -37,15 +37,15 @@ const pb = new PocketBase(POCKETBASE_URL);
 
 ### The Meta Properties `fields` and `expand`
 
-The code below uses `useList` to fetch a list of users. The resulting list contains user records with the `id`, `name`, `avatar` and the name of the organisation a user is assigned to. The meta properties `fields` and `expand` are used to customize the server response to the requirements of the user interface. 
+The code below uses `useList` to fetch a list of users. The resulting list contains user records with the `id`, `name`, `avatar` and the name of the organisation a user is assigned to. The meta properties `fields` and `expand` are used to customize the server response to the requirements of the user interface.
 
-``` ts
+```ts
 const users = useList({
   resource: "users",
   meta: {
     fields: ["id", "name", "avatar", "expand.org.name"],
     expand: ["org"],
-  }
+  },
 });
 ```
 
@@ -57,7 +57,7 @@ A couple of other refine hooks and components like `useOne`, `useTable`, `<Show/
 
 The `in` or `nin` filters expect an array as value as show in the code fragment below.
 
-``` ts
+```ts
 {
   field: "a",
   operator: "in",
@@ -75,7 +75,7 @@ Setting an empty array `[]` as a filter value will cause the `in` or `nin` filte
 
 The `between` or `nbetween` filters expect a tuple `[min, max]` as value as show in the code fragment below.
 
-``` ts
+```ts
 {
   field: "a",
   operator: "between",
@@ -96,20 +96,21 @@ An empty tuple `[]` will cause the filter to be excluded from the resulting filt
 The `useCustom` hook allows you to make custom API calls to your PocketBase backend. This is particularly useful when you need to interact with custom PocketBase endpoints.
 
 Here's an example of how to use the `useCustom` hook:
-``` ts
+
+```ts
 const apiUrl = useApiUrl();
 
 const { data, isLoading } = useCustom({
-    url: `${apiUrl}/api/custom-endpoint`,
-    method: "get",
-  });
+  url: `${apiUrl}/api/custom-endpoint`,
+  method: "get",
+});
 ```
 
 ## Auth Provider
 
 A number of configuration properties are supported by the auth provider, primarily for controlling redirection following specific auth events. Please take a look at the self-explanatory names in the `AuthOptions` typescript interface to find the available options.
- 
-``` ts
+
+```ts
 import { authProvider, AuthOptions } from "refine-pocketbase";
 
 const authOptions: AuthOptions = {
@@ -124,11 +125,11 @@ const authOptions: AuthOptions = {
 </Refine>
 ```
 
-### Auth Collection 
+### Auth Collection
 
 `users` is the default auth collection in Pocketbase. Several auth collections can be supported in a single Pocketbase instance. You can use a different collection with the `authProvider` by using the `collection` property:
 
-``` ts
+```ts
 const authOptions: AuthOptions = {
   collection: "superusers",
 };
@@ -138,23 +139,25 @@ const authOptions: AuthOptions = {
 
 The PocketBase `OAuth2Config` can be set either via the `mutationVariables` prop in [`AuthPage`](https://refine.dev/docs/authentication/components/auth-page/#mutationvariables),
 
-``` ts
+```ts
 <AuthPage
   type="login"
   mutationVariables={{
     scopes: ["user-read-private", "user-top-read"],
   }}
-  providers={[{
-    name: "spotify",
-    label: "Login with Spotify",
-    icon: <SpotifyIcon />,
-  }]}
+  providers={[
+    {
+      name: "spotify",
+      label: "Login with Spotify",
+      icon: <SpotifyIcon />,
+    },
+  ]}
 />
 ```
 
 or imperatively via [`useLogin`](https://refine.dev/docs/authentication/hooks/use-login/#usage):
 
-``` ts
+```ts
 import { LoginWithProvider } from "refine-pocketbase";
 
 const { mutate: login } = useLogin<LoginWithProvider>();
@@ -171,7 +174,7 @@ For improved type safety, `refine-pocketbase` exports the `LoginWithProvider` ty
 
 For password-based authentication, you can pass an optional `options` property that meets PocketBase's `RecordOptions` interface.
 
-``` ts
+```ts
 import { LoginWithPassword } from "refine-pocketbase";
 
 const { mutate: login } = useLogin<LoginWithPassword>();
@@ -222,7 +225,7 @@ login({
 
 ## Tasks: PRs Welcome!
 
-- [ ] `auditLogProvider` implementation 
+- [ ] `auditLogProvider` implementation
 - [ ] happy path test specs
   - [x] `authProvider`
   - [x] `dataProvider` (except for `deleteOne`)
@@ -259,5 +262,9 @@ login({
 - open a pull request 🏗️
 - help others ❤️
 - [buy me a coffee ☕](https://www.buymeacoffee.com/kruschid)
-  
+
 <a href="https://www.buymeacoffee.com/kruschid" target="_blank"><img width="200px" src="https://cdn.buymeacoffee.com/buttons/v2/default-orange.png" alt="Buy Me A Coffee" ></a>
+
+## Refine PocketBase Starter
+
+If you're tired of setting up another PocketBase instance, installing frontend dependencies, and building CI/CD pipelines, but would rather start shipping features or prototypes right away, I would be more than happy if you could try the headless [`refine-pocketbase-starter`](https://github.com/kruschid/refine-pocketbase-starter) template. You can choose any UI library you prefer. `refine-pocketbase-starter` also includes a GitHub Actions workflow that builds a Docker image containing both PocketBase and your frontend. For easy self-hosting, the Docker image will be stored in the GitHub container registry (packages) each time you push a new version tag.
