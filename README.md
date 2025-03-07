@@ -7,7 +7,7 @@
 
 ![pb](https://github.com/necatiozmen/refine-pocketbase/assets/18739364/4c5e6c43-42f3-4d7f-88c2-74970144308b)
 
-[PocketBase](https://pocketbase.io/) providers for [Refine](https://refine.dev/).
+[Refine](https://refine.dev/) providers for integrating your frontend application with ease into your [PocketBase](https://pocketbase.io) backend. It implements the three common providers for user authentication, CRUD, and live updates. It's based on the [PocketBase JS SDK](https://github.com/pocketbase/js-sdk) and can also be used in conjunction with [pocketbase-typegen](https://github.com/patmood/pocketbase-typegen) for improved type safety.
 
 ## Installation
 
@@ -265,6 +265,6 @@ login({
 
 <a href="https://www.buymeacoffee.com/kruschid" target="_blank"><img width="200px" src="https://cdn.buymeacoffee.com/buttons/v2/default-orange.png" alt="Buy Me A Coffee" ></a>
 
-## Refine PocketBase Starter
+## Refine PocketBase Starter Template
 
-If you're tired of setting up another PocketBase instance, installing frontend dependencies, and building CI/CD pipelines, but would rather start shipping features or prototypes right away, I would be more than happy if you could try the headless [`refine-pocketbase-starter`](https://github.com/kruschid/refine-pocketbase-starter) template. You can choose any UI library you prefer. `refine-pocketbase-starter` also includes a GitHub Actions workflow that builds a Docker image containing both PocketBase and your frontend. For easy self-hosting, the Docker image will be stored in your GitHub container registry (private or public) each time you push a new version tag. Just follow the instructions in the documentation. If you have further questions, don't hesitate to ask in my [Discord channel](https://discord.gg/BCGmvSSJBk).
+If you're tired of setting up another PocketBase instance, installing frontend dependencies, and building CI/CD pipelines, but would rather start shipping features or prototypes right away, I would be more than happy if you could try the headless [`refine-pocketbase-starter`](https://github.com/kruschid/refine-pocketbase-starter) template. You can choose any UI library you prefer. `refine-pocketbase-starter` also includes a GitHub Actions workflow that builds a Docker image containing both PocketBase and your frontend. For easy self-hosting, the Docker image will be stored in your GitHub container registry (private or public) each time you push a new version tag. However, alternative container registries can also be used. Just follow the instructions in the documentation. If you have further questions, don't hesitate to ask in my [Discord channel](https://discord.gg/BCGmvSSJBk).
