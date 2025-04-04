@@ -32,7 +32,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.3.4",
     "typescript": "^4.7.4",
-    "vite": "^6.2.3"
+    "vite": "^6.2.5"
   },
   "scripts": {
     "dev": "refine dev --host 0.0.0.0",
