@@ -58,6 +58,7 @@ jobs:
 
     - name: Validate and set version from Git tag
       if: github.event_name == 'release'
+      working-directory: lib
       run: |
         TAG_VERSION="${GITHUB_REF#refs/tags/}"
         IS_PRERELEASE="${{ github.event.release.prerelease }}"
@@ -83,11 +84,12 @@ jobs:
     
     - name: Publish to npm
       if: github.event_name == 'release'
+      working-directory: lib
       run: |
         if [[ "${{ github.event.release.prerelease }}" == "true" ]]; then
-          yarn npm publish --tag dev
+          npm publish --tag dev
         else
-          yarn npm publish
+          npm publish
         fi
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
