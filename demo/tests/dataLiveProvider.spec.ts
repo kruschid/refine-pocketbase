@@ -1,6 +1,6 @@
-import { v4 as uuidv4 } from "uuid";
-import PocketBase from "pocketbase";
 import { expect, test } from "@playwright/test";
+import PocketBase from "pocketbase";
+import { v4 as uuidv4 } from "uuid";
 
 const PB_URL = "http://127.0.0.1:8090";
 const EMAIL = `test-user@example.com`;
@@ -96,7 +96,7 @@ test.describe("data and live provider", () => {
   });
 
   test("pagination", async ({ page }) => {
-    for (let i of [1, 2]) {
+    for (const i of [1, 2]) {
       await page.goto(
         `/posts?pageSize=1&current=${i}&sorters[0][field]=title&sorters[0][order]=asc`
       );
