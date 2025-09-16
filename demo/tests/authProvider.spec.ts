@@ -24,7 +24,7 @@ test.describe("auth provider", () => {
     await page.goto("/");
     await page.click('a[href="/register"]');
     await page.fill("#register-email", EXISTING_EMAIL);
-    await page.fill("#register-password", "123");
+    await page.fill("#register-password", "1234567890");
     await page.click("#register-submit");
 
     expect(await page.textContent("#register-error")).toContain(
@@ -34,6 +34,7 @@ test.describe("auth provider", () => {
       "Value must be unique."
     );
 
+    await page.reload();
     await page.fill("#register-email", `${uuidv4()}@example.com`);
     await page.fill("#register-password", "123");
     await page.click("#register-submit");

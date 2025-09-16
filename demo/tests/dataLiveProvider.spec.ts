@@ -24,9 +24,9 @@ test.describe("data and live provider", () => {
         Promise.all(posts.map((post) => pb.collection("posts").delete(post.id)))
       );
     await Promise.all(
-      posts.map((post) => {
-        pb.collection("posts").create(post, { requestKey: null });
-      })
+      posts.map((post) =>
+        pb.collection("posts").create(post, { requestKey: null })
+      )
     );
 
     await page.goto("/login");

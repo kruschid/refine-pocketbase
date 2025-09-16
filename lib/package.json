@@ -1,7 +1,7 @@
 {
   "name": "refine-pocketbase",
   "description": "PocketBase auth, data & live providers for Refine",
-  "version": "0.4.2",
+  "version": "1.0.0",
   "author": "Denis Kruschinski <4989565+kruschid@users.noreply.github.com>",
   "source": "src/index.ts",
   "module": "build/index.mjs",
@@ -22,17 +22,18 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@parcel/packager-ts": "^2.13.3",
-    "@parcel/transformer-typescript-types": "^2.13.3",
-    "@refinedev/core": "^4.55.0",
-    "@types/tape": "^5.6.4",
-    "parcel": "^2.13.3",
-    "pocketbase": "^0.26.1",
+    "@parcel/packager-ts": "^2.15.4",
+    "@parcel/transformer-typescript-types": "^2.15.4",
+    "@refinedev/core": "^5.0.1",
+    "@types/tape": "^5.8.1",
+    "parcel": "^2.15.4",
+    "pocketbase": "^0.26.2",
     "tape": "^5.9.0",
     "tsimp": "^2.0.12",
-    "typescript": "^5.6.3"
+    "typescript": "^5.9.2"
   },
   "peerDependencies": {
+    "@refinedev/core": ">=5.0.0",
     "pocketbase": ">=0.22.0"
   },
   "keywords": [
