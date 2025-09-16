@@ -1,6 +1,6 @@
-import { AuthProvider, UpdatePasswordFormTypes } from "@refinedev/core";
+import type { AuthProvider as RefineAuthProvider, UpdatePasswordFormTypes } from "@refinedev/core";
 import type PocketBase from "pocketbase";
-import { OAuth2AuthConfig, RecordOptions } from "pocketbase";
+import type { OAuth2AuthConfig, RecordOptions } from "pocketbase";
 import { isClientResponseError, toHttpError } from "./utils";
 
 export interface LoginWithProvider extends OAuth2AuthConfig {
@@ -13,7 +13,16 @@ export interface LoginWithPassword {
   options?: RecordOptions;
 }
 
-export type LoginOptions = LoginWithProvider | LoginWithPassword;
+export interface LoginWithOtp {
+  otp: string;
+}
+
+export interface RequestOtpArgs {
+  email: string;
+  password?: string;
+}
+
+export type LoginOptions = LoginWithProvider | LoginWithOtp | LoginWithPassword;
 
 export interface AuthOptions {
   collection?: string;
@@ -38,13 +47,27 @@ type RequiredAuthOptions = Pick<
 
 export type UpdatePasswordProps = UpdatePasswordFormTypes & { token: string };
 
+export interface AuthProvider extends RefineAuthProvider {
+  requestOtp?: (args: LoginWithPassword) => Promise<void>;
+}
+
 const defaultOptions: RequiredAuthOptions = {
   collection: "users",
   requestVerification: false,
 };
 
-const isLoginWithProvider = (x: any): x is LoginWithProvider =>
-  typeof x.providerName === "string" || typeof x.provider === "string";
+const isLoginWithProvider = (x: unknown): x is LoginWithProvider =>
+  typeof x === "object" &&
+  x !== null &&
+  "providerName" in x &&
+  "provider" in x &&
+  (typeof x.providerName === "string" || typeof x.provider === "string");
+
+const isLoginWithOtp = (x: unknown): x is LoginWithOtp =>
+  typeof x === "object" &&
+  x !== null &&
+  "otp" in x &&
+  typeof x.otp === "string";
 
 export const authProvider = (
   pb: PocketBase,
@@ -54,6 +77,9 @@ export const authProvider = (
     ...defaultOptions,
     ...authOptions,
   };
+
+  let otpId: string | undefined;
+  let mfaId: string | undefined;
 
   return {
     register: async ({ email, password, username, name }) => {
@@ -124,6 +150,22 @@ export const authProvider = (
         };
       }
     },
+    requestOtp: async ({ email, password }: RequestOtpArgs) => {
+      if(typeof password === "undefined") {
+          otpId = (await pb.collection(options.collection).requestOTP(email)).otpId;
+      } else {
+        try {
+          await pb.collection(options.collection).authWithPassword(email, password);
+        }
+        catch (err: any) {
+          mfaId = err.response?.mfaId;
+          if (!mfaId) {
+            throw err;
+          }
+          otpId = (await pb.collection(options.collection).requestOTP(email)).otpId;
+        }
+      }
+    },
     login: async (loginOptions: LoginOptions) => {
       try {
         if (isLoginWithProvider(loginOptions)) {
@@ -132,6 +174,22 @@ export const authProvider = (
             provider: loginOptions.providerName ?? loginOptions.provider,
           });
           if (pb.authStore.isValid) {
+            return {
+              success: true,
+              redirectTo: options.loginRedirectTo,
+            };
+          }
+        } else if (isLoginWithOtp(loginOptions)) {
+          if (!otpId) {
+            return {
+              success: false,
+              error: Error("otpId is undefined"),
+            }
+          }
+          await pb.collection(options.collection).authWithOTP(otpId, loginOptions.otp, { mfaId });
+          if (pb.authStore.isValid) { 
+            otpId = undefined;
+            mfaId = undefined;
             return {
               success: true,
               redirectTo: options.loginRedirectTo,
@@ -186,7 +244,6 @@ export const authProvider = (
         redirectTo: options.unauthenticatedRedirectTo,
       };
     },
-    getPermissions: async () => null,
     getIdentity: async () => {
       if (pb.authStore.isValid && pb.authStore.record) {
         return pb.authStore.record; // id, name, avatar, ...
