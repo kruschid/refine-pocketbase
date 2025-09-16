@@ -16,21 +16,25 @@ jobs:
       with:
         path: /tmp/.buildx-cache
         key: ${{ runner.os }}-docker-${{ hashFiles('./demo/docker-compose.yml') }}
+  
     - name: Cache Node.js modules
       uses: actions/cache@v4
       with:
         path: ~/.npm
         key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
+  
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
       with:
         node-version: lts/*
         registry-url: "https://registry.npmjs.org"
+
     - name: Build & Test Lib
       working-directory: lib
       run: | 
         npm ci
         npm run build
+  
     - name: Build & Test Demo
       working-directory: demo
       run: |
@@ -38,27 +42,52 @@ jobs:
         npm ci
         npx playwright install --with-deps
         npx playwright test
+  
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
         name: playwright-report
         path: demo/playwright-report/
         retention-days: 30
+  
     - name: Copy Readme and License
       if: github.event_name == 'release'
       working-directory: lib
       run: cp ../{README.md,LICENSE} .
       shell: bash
-    - name: prerelease
-      if: github.event_name == 'release' && github.event.release.prerelease
-      working-directory: lib
-      run: npm publish --tag dev
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-    - name: publish
-      if: github.event_name == 'release' && !github.event.release.prerelease
-      working-directory: lib
-      run: npm publish
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    - name: Validate and set version from Git tag
+      if: github.event_name == 'release'
+      run: |
+        TAG_VERSION="${GITHUB_REF#refs/tags/}"
+        IS_PRERELEASE="${{ github.event.release.prerelease }}"
+
+        echo "Git tag version: $TAG_VERSION"
+        echo "Is prerelease: $IS_PRERELEASE"
+
+        # Validate version formats
+        if [[ "$IS_PRERELEASE" == "true" ]]; then
+          if [[ ! "$TAG_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+-dev\.[0-9]+$ ]]; then
+            echo "❌ Prerelease must use format x.x.x-dev.x"
+            exit 1
+          fi
+        else
+          if [[ ! "$TAG_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Full release must use format x.x.x"
+            exit 1
+          fi
+        fi
+
+        echo "✅ Version format is valid: $TAG_VERSION"
+        npm version "$TAG_VERSION" --no-git-tag-version
     
+    - name: Publish to npm
+      if: github.event_name == 'release'
+      run: |
+        if [[ "${{ github.event.release.prerelease }}" == "true" ]]; then
+          yarn npm publish --tag dev
+        else
+          yarn npm publish
+        fi
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
