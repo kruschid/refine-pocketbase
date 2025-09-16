@@ -17,7 +17,7 @@ export const dataProvider = (
   "createMany" | "updateMany" | "deleteMany" | "getMany"
 > => ({
   getList: async ({ resource, pagination, filters, sorters, meta }) => {
-    const { current = 1, pageSize = 10, mode = "server" } = pagination ?? {};
+    const { currentPage = 1, pageSize = 10, mode = "server" } = pagination ?? {};
 
     const sort = sorters
       ?.map((s) => `${s.order === "desc" ? "-" : ""}${s.field}`)
@@ -36,7 +36,7 @@ export const dataProvider = (
     try {
       if (mode === "server") {
         const { items, totalItems } = await collection.getList(
-          current,
+          currentPage,
           pageSize,
           options
         );
