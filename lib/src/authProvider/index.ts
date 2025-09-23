@@ -8,6 +8,11 @@ import { logout } from "./logout";
 import { register } from "./register";
 import { updatePassword } from "./updatePassword";
 
+export type * from "./forgotPassword";
+export type * from "./login";
+export type * from "./register";
+export type * from "./updatePassword";
+
 export interface AuthOptions {
   collection?: string;
   requestVerification?: boolean;
