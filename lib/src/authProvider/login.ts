@@ -25,6 +25,8 @@ export interface LoginWithOtp {
   mfaId: string;
 }
 
+export type LoginQueryParams = Pick<LoginWithOtp, "mfaId" | "otpId">;
+
 export type LoginArgs = (
   | LoginWithProvider
   | LoginWithOtp
@@ -112,7 +114,7 @@ export const login = (
             success: true,
             successNotification,
             redirectTo: options.loginRequestOtpRedirectTo
-              ? `${options.loginRequestOtpRedirectTo}?otpId=${otpId}&mfaId=${mfaId}`
+              ? `${options.loginRequestOtpRedirectTo}?${loginQueryParams({otpId, mfaId})}` //otpId=..&mfaId=..`
               : undefined,
           };
         } else {
@@ -195,3 +197,9 @@ const isLoginWithCredentials = (x: unknown): x is LoginWithCredentials =>
   typeof x === "object" &&
   x !== null &&
   Object.keys(x).some((key) => ["email", "username", "password"].includes(key));
+
+const loginQueryParams = (params: LoginQueryParams) =>
+  Object
+    .entries(params)
+    .map(([key, value]) => `${key}=${value}`)
+    .join("&");
