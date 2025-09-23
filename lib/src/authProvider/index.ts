@@ -8,6 +8,11 @@ import { logout } from "./logout";
 import { register } from "./register";
 import { updatePassword } from "./updatePassword";
 
+export type * from "./forgotPassword";
+export type * from "./login";
+export type * from "./register";
+export type * from "./updatePassword";
+
 export interface AuthOptions {
   collection?: string;
   requestVerification?: boolean;
@@ -25,10 +30,8 @@ export interface AuthOptions {
   unauthenticatedRedirectTo?: string;
 }
 
-export type RequiredAuthOptions = AuthOptions & Pick<
-  Required<AuthOptions>,
-  "collection" | "requestVerification"
->;
+export type RequiredAuthOptions = AuthOptions &
+  Pick<Required<AuthOptions>, "collection" | "requestVerification">;
 
 export type TranslateFn = ReturnType<typeof useTranslate>;
 
@@ -53,14 +56,10 @@ export const authProvider = (
     updatePassword: updatePassword(pb, options),
     check: check(pb, options),
     logout: logout(pb, options),
-    getIdentity: async () => 
-      pb.authStore.isValid
-        ? pb.authStore.record
-        : null,
+    getIdentity: async () =>
+      pb.authStore.isValid ? pb.authStore.record : null,
     onError: async (error) => ({
-      error: isClientResponseError(error)
-        ? toHttpError(error)
-        : error, 
+      error: isClientResponseError(error) ? toHttpError(error) : error,
     }),
-  }
-}
+  };
+};

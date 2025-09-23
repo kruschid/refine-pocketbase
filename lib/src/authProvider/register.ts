@@ -2,7 +2,7 @@ import type { AuthActionResponse } from "@refinedev/core";
 import type PocketBase from "pocketbase";
 import type { RequiredAuthOptions, TranslateFn } from ".";
 
-export interface RegisterOptions {
+export interface RegisterArgs {
   email: string;
   password: string;
   username?: string;
@@ -20,7 +20,7 @@ export const register = (
   username,
   name,
   translate,
-}: RegisterOptions): Promise<AuthActionResponse> => {
+}: RegisterArgs): Promise<AuthActionResponse> => {
   await pb.collection(options.collection).create({
     email,
     username,

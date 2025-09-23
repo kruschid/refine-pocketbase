@@ -2,7 +2,7 @@ import type { AuthActionResponse } from "@refinedev/core";
 import type PocketBase from "pocketbase";
 import type { RequiredAuthOptions, TranslateFn } from ".";
 
-interface UpdatePassword {
+export interface UpdatePasswordArgs {
   token: string;
   password: string;
   translate?: TranslateFn;
@@ -15,7 +15,7 @@ export const updatePassword = (
   token,
   password,
   translate,
-}: UpdatePassword): Promise<AuthActionResponse> => {
+}: UpdatePasswordArgs): Promise<AuthActionResponse> => {
   await pb
     .collection(options.collection)
     .confirmPasswordReset(token, password, password);

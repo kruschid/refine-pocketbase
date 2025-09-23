@@ -8,19 +8,16 @@ export interface LoginWithProvider extends OAuth2AuthConfig {
   providerName?: string; // providerName prop is used by several AuthPage implementations
 }
 
-export type RequestOtp = {
-  email: string;
-} | {
-  username: string;
-}
-
-export type LoginWithCredentials = {
-  email: string;
-  password: string;
-} | {
-  username: string;
-  password: string;
-}
+export type LoginWithCredentials = (
+  | {
+      email: string;
+    }
+  | {
+      username: string;
+    }
+) & {
+  password?: string;
+};
 
 export interface LoginWithOtp {
   otp: string;
@@ -39,49 +36,30 @@ export type LoginArgs = (
 export const login = (
   pb: PocketBase,
   options: RequiredAuthOptions,
-) => async (
-  { translate, ...loginOptions }: LoginArgs
-): Promise<AuthActionResponse> => {
-  const successNotification = translate ? {
-    message: translate("authProvider.login.successMessage", "Login successful"),
-    description: translate("authProvider.login.successDescription", "You're now signed in and ready to go."),
-  }: undefined;
+) => async ({
+  translate,
+  ...loginOptions
+}: LoginArgs): Promise<AuthActionResponse> => {
+  try {
+    const successNotification = translate
+      ? {
+          message: translate(
+            "authProvider.login.successMessage",
+            "Login successful"
+          ),
+          description: translate(
+            "authProvider.login.successDescription",
+            "You're now signed in and ready to go."
+          ),
+        }
+      : undefined;
 
-  if (isLoginWithProvider(loginOptions)) {
-    await pb.collection(options.collection).authWithOAuth2({
-      ...loginOptions,
-      provider: loginOptions.providerName ?? loginOptions.provider,
-    });
+    if (isLoginWithProvider(loginOptions)) {
+      await pb.collection(options.collection).authWithOAuth2({
+        ...loginOptions,
+        provider: loginOptions.providerName ?? loginOptions.provider,
+      });
 
-    if (pb.authStore.isValid) {
-      return {
-        success: true,
-        successNotification,
-        redirectTo: options.loginRedirectTo,
-      };
-    }
-  } else if(isRequestOtp(loginOptions)){
-    const emailOrUsername = "email" in loginOptions ? loginOptions.email : loginOptions.username;
-
-    const { otpId } = await pb
-        .collection(options.collection)
-        .requestOTP(emailOrUsername);
-  
-      return {
-        success: true,
-        successNotification,
-        redirectTo: options.loginRequestOtpRedirectTo
-          ? `${options.loginRequestOtpRedirectTo}?otpId=${otpId}`
-          : undefined,
-      }
-  } else if(isLoginWithCredentials(loginOptions)) {
-    const emailOrUsername = "email" in loginOptions ? loginOptions.email : loginOptions.username
-  
-    try {
-      await pb
-        .collection(options.collection)
-        .authWithPassword(emailOrUsername, loginOptions.password);
-      
       if (pb.authStore.isValid) {
         return {
           success: true,
@@ -89,53 +67,115 @@ export const login = (
           redirectTo: options.loginRedirectTo,
         };
       }
-    }
-    catch (err: unknown) {
-      if(!isClientResponseError(err)){
-        throw Error("Unknown error");
-      }
-      const mfaId: string | undefined = err.response.mfaId;
+    } else if (isLoginWithCredentials(loginOptions)) {
+      const emailOrUsername =
+        "email" in loginOptions ? loginOptions.email : loginOptions.username;
 
-      if (mfaId) {
+      // passwordless login with otp
+      if (!loginOptions.password) {
         const { otpId } = await pb
           .collection(options.collection)
           .requestOTP(emailOrUsername);
+
         return {
           success: true,
           successNotification,
           redirectTo: options.loginRequestOtpRedirectTo
-            ? `${options.loginRequestOtpRedirectTo}?otpId=${otpId}&mfaId=${mfaId}`
+            ? `${options.loginRequestOtpRedirectTo}?otpId=${otpId}`
             : undefined,
-        }
-      } else {
-        throw Error("Invalid credentials");
+        };
       }
-    }     
-  } else if (isLoginWithOtp(loginOptions)) {
-    if (!loginOptions.otpId) {
-      throw Error("otpId is undefined");
+
+      try {
+        await pb
+          .collection(options.collection)
+          .authWithPassword(emailOrUsername, loginOptions.password);
+
+        if (pb.authStore.isValid) {
+          return {
+            success: true,
+            successNotification,
+            redirectTo: options.loginRedirectTo,
+          };
+        }
+      } catch (err: unknown) {
+        if (!isClientResponseError(err)) {
+          throw Error("Unknown error");
+        }
+        const mfaId: string | undefined = err.response.mfaId;
+
+        if (mfaId) {
+          const { otpId } = await pb
+            .collection(options.collection)
+            .requestOTP(emailOrUsername);
+          return {
+            success: true,
+            successNotification,
+            redirectTo: options.loginRequestOtpRedirectTo
+              ? `${options.loginRequestOtpRedirectTo}?otpId=${otpId}&mfaId=${mfaId}`
+              : undefined,
+          };
+        } else {
+          throw Error("Invalid credentials");
+        }
+      }
+    } else if (isLoginWithOtp(loginOptions)) {
+      if (!loginOptions.otpId) {
+        throw Error("otpId is undefined");
+      }
+
+      await pb
+        .collection(options.collection)
+        .authWithOTP(loginOptions.otpId, loginOptions.otp, {
+          mfaId: loginOptions.mfaId,
+        });
+
+      if (pb.authStore.isValid) {
+        return {
+          success: true,
+          successNotification,
+          redirectTo: options.loginRedirectTo,
+        };
+      } else {
+        throw Error("Invalid code");
+      }
     }
+  } catch {
+    return {
+      success: false,
+      error: {
+        name: translate
+          ? translate("authProvider.login.errorName", "Something went wrong")
+          : "Something went wrong",
+        message: translate
+          ? translate(
+              "authProvider.login.errorMessage",
+              "We couldn’t complete your request. Please refresh or try again later."
+            )
+          : "We couldn’t complete your request. Please refresh or try again later.",
+        statusCode: 401,
+      },
+    };
+  }
 
-    await pb
-      .collection(options.collection)
-      .authWithOTP(
-        loginOptions.otpId,
-        loginOptions.otp,
-        { mfaId: loginOptions.mfaId }
-      );
-
-    if (pb.authStore.isValid) { 
-      return {
-        success: true,
-        successNotification,
-        redirectTo: options.loginRedirectTo,
-      };
-    } else {
-      throw Error("Invalid code");
-    }
-  } 
-
-  throw Error("Unknown auth method");
+  return {
+    success: false,
+    error: {
+      name: translate
+        ? translate(
+            "authProvider.login.unsupportedLoginName",
+            "Unsupported login"
+          )
+        : "Unsupported login",
+      message: translate
+        ? translate(
+            "authProvider.login.unsupportedLoginMessage",
+            "This authentication method isn’t available. Try another way to sign in."
+          )
+        : "This authentication method isn’t available. Try another way to sign in.",
+      statusCode: 400,
+    },
+  };
 };
 
 const isLoginWithProvider = (x: unknown): x is LoginWithProvider =>
@@ -153,20 +193,5 @@ const isLoginWithOtp = (x: unknown): x is LoginWithOtp =>
 
 const isLoginWithCredentials = (x: unknown): x is LoginWithCredentials =>
   typeof x === "object" &&
-  x !== null && (
-    Object
-      .keys(x)
-      .some(key =>
-        ["email", "username", "password"].includes(key)
-      )
-  );
-
-const isRequestOtp = (x: unknown): x is RequestOtp =>
-  typeof x === "object" &&
-  x !== null && (
-    Object
-      .keys(x)
-      .some(key =>
-        ["email", "username"].includes(key)
-      )
-  );
+  x !== null &&
+  Object.keys(x).some((key) => ["email", "username", "password"].includes(key));
