@@ -22,7 +22,7 @@ export interface AuthOptions {
   forgotPasswordErrorRedirectTo?: string;
   updatePasswordRedirectTo?: string;
   updatePasswordErrorRedirectTo?: string;
-  loginRequestOtpRedirectTo?: string;
+  loginOtpRedirectTo?: string;
   loginRedirectTo?: string;
   loginErrorRedirectTo?: string;
   logoutRedirectTo?: string;

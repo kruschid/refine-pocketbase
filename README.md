@@ -204,6 +204,80 @@ login({
 />
 ```
 
+### Passwordless Auth with OTP
+
+For passwordless authentication, you can omit the password when using the login mutation function:
+
+```ts
+const { mutate: login } = useLogin<LoginWithPassword>();
+
+login({ email: "user@example.com" });
+```
+
+For this to work correctly, you need to configure PocketBase to send out one-time passwords.
+
+You must also define `loginOtpRedirectTo` in `authOptions`, pointing to a route that renders a form for the OTP input:
+
+```ts
+const authOptions: AuthOptions = {
+  loginOtpRedirectTo: "/otp",
+  // other options
+};
+
+<Refine authProvider={authProvider(pb, authOptions)}>
+  ...
+</Refine>
+```
+
+The route specified in `loginOtpRedirectTo` will be concatenated with a `?otpId=...` query parameter that carries the value required for the subsequent authentication step:
+
+```ts
+const { mutate: login } = useLogin<LoginWithOtp>();
+
+login({
+  otp,   // the code entered by the user who received the OTP via email
+  otpId, // query param
+});
+```
+
+### MFA with Password and OTP
+
+For MFA to work correctly, you need to configure PocketBase accordingly (including the SMTP server for the one-time password). After that, when you use the login mutation function, the user will automatically be redirected to the OTP input form.
+
+```ts
+const { mutate: login } = useLogin<LoginWithPassword>();
+
+login({ email: "user@example.com", password: "1234567890" });
+```
+
+For this to work correctly, `authOptions` must define `loginOtpRedirectTo`, which should point to a route that renders a form for the OTP input.
+
+```ts
+const authOptions: AuthOptions = {
+  loginOtpRedirectTo: "/otp",
+  // other options
+};
+
+<Refine authProvider={authProvider(pb, authOptions)}>
+  ...
+</Refine>
+```
+
+The route specified in `loginOtpRedirectTo` will be concatenated with a `?mfaId=...&otpId=...` search query that carries the required parameters for the subsequent authentication step:
+
+```ts
+const { mutate: login } = useLogin<LoginWithOtp>();
+
+login({
+  otp,   // the code entered by the user who received the OTP via email
+  otpId, // query param
+  mfaId, // query param
+});
+```
+
+### Login with user name
+
+
 ## Features
 
 - [x] auth provider

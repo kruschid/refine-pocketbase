@@ -1,6 +1,6 @@
 import type { AuthActionResponse } from "@refinedev/core";
 import type PocketBase from "pocketbase";
-import type { OAuth2AuthConfig } from "pocketbase";
+import type { CommonOptions, OAuth2AuthConfig, RecordOptions } from "pocketbase";
 import { isClientResponseError } from "../utils";
 import type { RequiredAuthOptions, TranslateFn } from ".";
 
@@ -8,21 +8,20 @@ export interface LoginWithProvider extends OAuth2AuthConfig {
   providerName?: string; // providerName prop is used by several AuthPage implementations
 }
 
-export type LoginWithCredentials = (
-  | {
-      email: string;
-    }
-  | {
-      username: string;
-    }
+export type LoginWithPassword = (
+  | { email: string; }
+  | { username: string; }
 ) & {
   password?: string;
+  otpOptions?: CommonOptions;
+  options?: RecordOptions;
 };
 
 export interface LoginWithOtp {
   otp: string;
   otpId: string;
-  mfaId: string;
+  mfaId?: string;
+  options?: CommonOptions;
 }
 
 export type LoginQueryParams = Pick<LoginWithOtp, "mfaId" | "otpId">;
@@ -30,7 +29,7 @@ export type LoginQueryParams = Pick<LoginWithOtp, "mfaId" | "otpId">;
 export type LoginArgs = (
   | LoginWithProvider
   | LoginWithOtp
-  | LoginWithCredentials
+  | LoginWithPassword
 ) & {
   translate?: TranslateFn;
 };
@@ -40,7 +39,7 @@ export const login = (
   options: RequiredAuthOptions,
 ) => async ({
   translate,
-  ...loginOptions
+  ...loginArgs
 }: LoginArgs): Promise<AuthActionResponse> => {
   try {
     const successNotification = translate
@@ -56,10 +55,11 @@ export const login = (
         }
       : undefined;
 
-    if (isLoginWithProvider(loginOptions)) {
+    
+    if (isLoginWithProvider(loginArgs)) {
       await pb.collection(options.collection).authWithOAuth2({
-        ...loginOptions,
-        provider: loginOptions.providerName ?? loginOptions.provider,
+        ...loginArgs,
+        provider: loginArgs.providerName ?? loginArgs.provider,
       });
 
       if (pb.authStore.isValid) {
@@ -69,21 +69,21 @@ export const login = (
           redirectTo: options.loginRedirectTo,
         };
       }
-    } else if (isLoginWithCredentials(loginOptions)) {
+    } else if (isLoginWithPassword(loginArgs)) {
       const emailOrUsername =
-        "email" in loginOptions ? loginOptions.email : loginOptions.username;
+        "email" in loginArgs ? loginArgs.email : loginArgs.username;
 
       // passwordless login with otp
-      if (!loginOptions.password) {
+      if (!loginArgs.password) {
         const { otpId } = await pb
           .collection(options.collection)
-          .requestOTP(emailOrUsername);
+          .requestOTP(emailOrUsername, loginArgs.otpOptions);
 
         return {
           success: true,
           successNotification,
-          redirectTo: options.loginRequestOtpRedirectTo
-            ? `${options.loginRequestOtpRedirectTo}?otpId=${otpId}`
+          redirectTo: options.loginOtpRedirectTo
+            ? `${options.loginOtpRedirectTo}?otpId=${otpId}`
             : undefined,
         };
       }
@@ -91,7 +91,7 @@ export const login = (
       try {
         await pb
           .collection(options.collection)
-          .authWithPassword(emailOrUsername, loginOptions.password);
+          .authWithPassword(emailOrUsername, loginArgs.password, loginArgs.options);
 
         if (pb.authStore.isValid) {
           return {
@@ -109,27 +109,28 @@ export const login = (
         if (mfaId) {
           const { otpId } = await pb
             .collection(options.collection)
-            .requestOTP(emailOrUsername);
+            .requestOTP(emailOrUsername, loginArgs.otpOptions);
           return {
             success: true,
             successNotification,
-            redirectTo: options.loginRequestOtpRedirectTo
-              ? `${options.loginRequestOtpRedirectTo}?${loginQueryParams({otpId, mfaId})}` //otpId=..&mfaId=..`
+            redirectTo: options.loginOtpRedirectTo
+              ? `${options.loginOtpRedirectTo}?${loginQueryParams({otpId, mfaId})}` //otpId=..&mfaId=..`
               : undefined,
           };
         } else {
           throw Error("Invalid credentials");
         }
       }
-    } else if (isLoginWithOtp(loginOptions)) {
-      if (!loginOptions.otpId) {
+    } else if (isLoginWithOtp(loginArgs)) {
+      if (!loginArgs.otpId) {
         throw Error("otpId is undefined");
       }
 
       await pb
         .collection(options.collection)
-        .authWithOTP(loginOptions.otpId, loginOptions.otp, {
-          mfaId: loginOptions.mfaId,
+        .authWithOTP(loginArgs.otpId, loginArgs.otp, {
+          ...loginArgs.options,
+          mfaId: loginArgs.mfaId,
         });
 
       if (pb.authStore.isValid) {
@@ -193,7 +194,7 @@ const isLoginWithOtp = (x: unknown): x is LoginWithOtp =>
   "otp" in x &&
   typeof x.otp === "string";
 
-const isLoginWithCredentials = (x: unknown): x is LoginWithCredentials =>
+const isLoginWithPassword = (x: unknown): x is LoginWithPassword =>
   typeof x === "object" &&
   x !== null &&
   Object.keys(x).some((key) => ["email", "username", "password"].includes(key));
