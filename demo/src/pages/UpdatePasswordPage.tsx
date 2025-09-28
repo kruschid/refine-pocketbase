@@ -1,11 +1,11 @@
+/** biome-ignore-all lint/correctness/useUniqueElementIds: usage of test ids for playwright */
 import { useParsed, useTranslate, useUpdatePassword } from "@refinedev/core";
-import React, { useState } from "react";
-import { UpdatePasswordProps } from "refine-pocketbase";
+import { useState } from "react";
 import { getHttpErrorField, isHttpError } from "../utils/errors";
 
-export const UpdatePasswordPage: React.FC = () => {
+export const UpdatePasswordPage = () => {
   const translate = useTranslate();
-  const { mutate: updatePassword, isLoading, data } = useUpdatePassword<UpdatePasswordProps>();
+  const { mutate: updatePassword, isPending, data } = useUpdatePassword();
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -72,7 +72,7 @@ export const UpdatePasswordPage: React.FC = () => {
         )}
         <input
           type="submit"
-          disabled={isLoading}
+          disabled={isPending}
           value={translate("pages.updatePassword.buttons.submit", "Update")}
         />
       </form>

@@ -1,14 +1,20 @@
-import { ForgotPasswordFormTypes, useForgotPassword, useTranslate } from "@refinedev/core";
-import React, { useState } from "react";
+/** biome-ignore-all lint/correctness/useUniqueElementIds: test ids for playwright */
+import { useForgotPassword, useTranslate } from "@refinedev/core";
+import type { ForgotPasswordArgs } from "refine-pocketbase";
 import { getHttpErrorField, isHttpError } from "../utils/errors";
 
-export const ForgotPasswordPage: React.FC = () => {
+export const ForgotPasswordPage = () => {
   const translate = useTranslate();
 
-  const [email, setEmail] = useState("");
+  const { mutate: forgotPassword, isPending, data } =
+    useForgotPassword<ForgotPasswordArgs>();
 
-  const { mutate: forgotPassword, isLoading, data } =
-    useForgotPassword<ForgotPasswordFormTypes>();
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    forgotPassword({ email });
+  }
 
   return (
     <>
@@ -22,10 +28,7 @@ export const ForgotPasswordPage: React.FC = () => {
       {data?.success && (
         <p id="forgot-password-success">Please check your mailbox for the token</p>
       )}
-      <form onSubmit={(e) => {
-        e.preventDefault();
-        forgotPassword({ email });
-      }}>
+      <form onSubmit={handleSubmit}>
         <label htmlFor="email-input">
           {translate(
             "pages.forgotPassword.fields.email",
@@ -35,8 +38,6 @@ export const ForgotPasswordPage: React.FC = () => {
         <input
           id="email-input"
           name="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
         />
         {isHttpError(data?.error) && (
           <p id="forgot-password-error">
@@ -45,7 +46,7 @@ export const ForgotPasswordPage: React.FC = () => {
         )}
         <input
           type="submit"
-          disabled={isLoading}
+          disabled={isPending}
           value={translate(
             "pages.forgotPassword.buttons.submit",
             "Send reset instructions",

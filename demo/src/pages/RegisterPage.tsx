@@ -1,34 +1,27 @@
-import { RegisterPageProps, useLink, useRegister, useTranslate } from "@refinedev/core";
-import { DivPropsType, FormPropsType } from "@refinedev/core/dist/components/pages/auth";
-import { useState } from "react";
+/** biome-ignore-all lint/correctness/useUniqueElementIds: usage of test ids for playwright  */
+import { useLink, useRegister, useTranslate } from "@refinedev/core";
 import { getHttpErrorField, isHttpError } from "../utils/errors";
 
-type RegisterProps = RegisterPageProps<
-  DivPropsType,
-  DivPropsType,
-  FormPropsType
->;
-
-export const RegisterPage: React.FC<RegisterProps> = () => {
+export const RegisterPage = () => {
   const Link = useLink();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
   const translate = useTranslate();
 
-  const { mutate: register, isLoading, data } = useRegister();
+  const { mutate: register, isPending, data } = useRegister();
+
+  const handleRegister = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    register({ email, password });
+  }
 
   return (
     <div>
       <h1>Sign up for your account</h1>
       <hr />
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          register({ email, password });
-        }}
-      >
+      <form onSubmit={handleRegister}>
         {data?.error && (
           <p id="register-error">
             {data.error.message}
@@ -42,8 +35,6 @@ export const RegisterPage: React.FC<RegisterProps> = () => {
           name="email"
           type="email"
           required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
         />
         {isHttpError(data?.error) && (
           <p id="register-email-error">
@@ -58,8 +49,6 @@ export const RegisterPage: React.FC<RegisterProps> = () => {
           name="password"
           type="password"
           required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
         />
         {isHttpError(data?.error) && (
           <p id="register-password-error">
@@ -70,7 +59,7 @@ export const RegisterPage: React.FC<RegisterProps> = () => {
           id="register-submit"
           type="submit"
           value={translate("pages.register.buttons.submit", "Sign up")}
-          disabled={isLoading}
+          disabled={isPending}
         />
       </form>
       <div>
