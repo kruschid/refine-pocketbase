@@ -10,6 +10,7 @@ migrate(
 
     const usersCollection = app.findCollectionByNameOrId("users");
     usersCollection.resetPasswordTemplate.body = "{TOKEN}";
+    usersCollection.otp.emailTemplate.body = "{OTP}"
     app.save(usersCollection);
 
     const superUser = new Record(app.findCollectionByNameOrId("_superusers"), {
