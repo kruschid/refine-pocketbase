@@ -1,21 +1,36 @@
-import { expect, test } from "@playwright/test";
+import { APIRequestContext, expect, test } from "@playwright/test";
 import { v4 as uuidv4 } from "uuid";
 
 const INBUCKET_URL = "http://127.0.0.1:9000";
 const EXISTING_EMAIL = "test-user@example.com";
 
 test.describe("auth provider", () => {
-  test("register and login happy path", async ({ page }) => {
-    const [email, password] = [`${uuidv4()}@example.com`, "1234567890"];
+  test("register and login happy path", async ({ page, request }) => {
+    const mailbox = uuidv4();
+    const [email, password] = [`${mailbox}@example.com`, "1234567890"];
 
     await page.goto("/");
+
+    //register 
     await page.click('a[href="/register"]');
     await page.fill("#register-email", email);
     await page.fill("#register-password", password);
     await page.click("#register-submit");
+    
+    // login
     await page.waitForURL("**/login**");
     await page.fill("#login-email", email);
-    await page.fill("#login-password", password);
+    await page.fill("#login-password", password); 
+    await page.click("#login-submit");
+
+    // 1. assert notification that otp was sent to email
+
+    // 2. fetch otp from inbucket
+    await page.waitForTimeout(2000); // wait for email delivery
+    const token = await fetchLatestEmail(request, mailbox);
+    // 3. fill out otp 
+    await page.fill("#login-otp", token);
+    // 4. submit
     await page.click("#login-submit");
     await page.waitForURL("**/posts");
   });
@@ -81,15 +96,7 @@ test.describe("auth provider", () => {
     // wait for email delivery
     await page.waitForTimeout(2000);
 
-    const token = await // read token from email
-    request
-      .get(`${INBUCKET_URL}/api/v1/mailbox/${mailbox}`)
-      .then((res) => res.json())
-      .then(([{ id }]) =>
-        request.get(`${INBUCKET_URL}/api/v1/mailbox/${mailbox}/${id}`)
-      )
-      .then((res) => res.json())
-      .then((res) => res.body.text);
+    const token = await fetchLatestEmail(request, mailbox); // read token from email
 
     // update password
     await page.goto(`/update-password?token=${token}`);
@@ -121,3 +128,16 @@ test.describe("auth provider", () => {
     );
   });
 });
+
+const fetchLatestEmail = async (
+  request: APIRequestContext,
+  mailbox: string,
+): Promise<string> =>
+  request
+    .get(`${INBUCKET_URL}/api/v1/mailbox/${mailbox}`)
+    .then((res) => res.json())
+    .then(([{ id }]) =>
+      request.get(`${INBUCKET_URL}/api/v1/mailbox/${mailbox}/${id}`)
+    )
+    .then((res) => res.json())
+    .then((res) => res.body.text);

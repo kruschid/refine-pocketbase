@@ -24,7 +24,9 @@ export interface LoginWithOtp {
   options?: CommonOptions;
 }
 
-export type LoginQueryParams = Pick<LoginWithOtp, "mfaId" | "otpId">;
+export type LoginQueryParams = Pick<LoginWithOtp, "mfaId" | "otpId"> & {
+  to?: string; // defined and used by refine useLogin
+};
 
 export type LoginArgs = (
   | LoginWithProvider
@@ -32,6 +34,7 @@ export type LoginArgs = (
   | LoginWithPassword
 ) & {
   translate?: TranslateFn;
+  redirectTo?: string;
 };
 
 export const login = (
@@ -69,11 +72,34 @@ export const login = (
           redirectTo: options.loginRedirectTo,
         };
       }
+    } else if (isLoginWithOtp(loginArgs)) {
+      if (!loginArgs.otpId) {
+        options.debug?.("otpId is undefined");
+        throw new Error("otpId is undefined");
+      }
+
+      await pb
+        .collection(options.collection)
+        .authWithOTP(loginArgs.otpId, loginArgs.otp, {
+          ...loginArgs.options,
+          mfaId: loginArgs.mfaId,
+        });
+
+      if (pb.authStore.isValid) {
+        return {
+          success: true,
+          successNotification,
+          redirectTo: options.loginRedirectTo,
+        };
+      } else {
+        options.debug?.("invalid otp")
+        throw Error("invalid otp");
+      }
     } else if (isLoginWithPassword(loginArgs)) {
       const emailOrUsername =
         "email" in loginArgs ? loginArgs.email : loginArgs.username;
 
-      // passwordless login with otp
+      // otp request for passwordless login 
       if (!loginArgs.password) {
         const { otpId } = await pb
           .collection(options.collection)
@@ -82,8 +108,8 @@ export const login = (
         return {
           success: true,
           successNotification,
-          redirectTo: options.loginOtpRedirectTo
-            ? `${options.loginOtpRedirectTo}?otpId=${otpId}`
+          redirectTo: options.otpRedirectTo
+            ? `${options.otpRedirectTo}?otpId=${otpId}`
             : undefined,
         };
       }
@@ -102,8 +128,14 @@ export const login = (
         }
       } catch (err: unknown) {
         if (!isClientResponseError(err)) {
-          throw Error("Unknown error");
+          options.debug?.("unknown error", err)
+          throw new Error("unknown error");
         }
+        if( !options.otpRedirectTo ) {
+          options.debug?.("loginOtpRedirectTo must be defined")
+          throw Error("loginOtpRedirectTo must be defined");
+        }
+  
         const mfaId: string | undefined = err.response.mfaId;
 
         if (mfaId) {
@@ -113,34 +145,12 @@ export const login = (
           return {
             success: true,
             successNotification,
-            redirectTo: options.loginOtpRedirectTo
-              ? `${options.loginOtpRedirectTo}?${loginQueryParams({otpId, mfaId})}` //otpId=..&mfaId=..`
-              : undefined,
+            redirectTo: withQueryParams(options.otpRedirectTo, {otpId, mfaId}),
           };
         } else {
-          throw Error("Invalid credentials");
+          options.debug?.("invalid credentials")
+          throw Error("invalid credentials");
         }
-      }
-    } else if (isLoginWithOtp(loginArgs)) {
-      if (!loginArgs.otpId) {
-        throw Error("otpId is undefined");
-      }
-
-      await pb
-        .collection(options.collection)
-        .authWithOTP(loginArgs.otpId, loginArgs.otp, {
-          ...loginArgs.options,
-          mfaId: loginArgs.mfaId,
-        });
-
-      if (pb.authStore.isValid) {
-        return {
-          success: true,
-          successNotification,
-          redirectTo: options.loginRedirectTo,
-        };
-      } else {
-        throw Error("Invalid code");
       }
     }
   } catch {
@@ -199,8 +209,15 @@ const isLoginWithPassword = (x: unknown): x is LoginWithPassword =>
   x !== null &&
   Object.keys(x).some((key) => ["email", "username", "password"].includes(key));
 
-const loginQueryParams = (params: LoginQueryParams) =>
-  Object
-    .entries(params)
-    .map(([key, value]) => `${key}=${value}`)
-    .join("&");
+const withQueryParams = (path: string, params: LoginQueryParams) => {
+  const url = new URL(
+    typeof window !== "undefined"
+      ? window.location.href
+      : "https://localhost"
+  );
+  for(const [key, value] of Object.entries(params)) {
+    url.searchParams.set(key, value);
+  }
+
+  return `${path}${url.search}`;
+}

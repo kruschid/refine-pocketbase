@@ -7,8 +7,6 @@ export const isClientResponseError = (x: unknown): x is ClientResponseError =>
   "response" in x &&
   typeof x.response === "object" &&
   x.response !== null &&
-  "data" in x.response &&
-  typeof x.response.data === "object" &&
   "isAbort" in x &&
   typeof x.isAbort === "boolean" &&
   "url" in x &&

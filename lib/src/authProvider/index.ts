@@ -22,12 +22,13 @@ export interface AuthOptions {
   forgotPasswordErrorRedirectTo?: string;
   updatePasswordRedirectTo?: string;
   updatePasswordErrorRedirectTo?: string;
-  loginOtpRedirectTo?: string;
+  otpRedirectTo?: string;
   loginRedirectTo?: string;
   loginErrorRedirectTo?: string;
   logoutRedirectTo?: string;
   authenticatedRedirectTo?: string;
   unauthenticatedRedirectTo?: string;
+  debug?: (...args: unknown[]) => void;
 }
 
 export type RequiredAuthOptions = AuthOptions &

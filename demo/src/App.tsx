@@ -16,7 +16,9 @@ const pb = new PocketBase(POCKETBASE_URL);
 const authOptions: AuthOptions = {
   registerRedirectTo: "/posts",
   loginRedirectTo: "/posts",
-  updatePasswordRedirectTo: "/login"
+  otpRedirectTo: "/login",
+  updatePasswordRedirectTo: "/login",
+  debug: console.log,
 }
 
 const providers = {
@@ -29,6 +31,7 @@ export const App = () =>
   <BrowserRouter>
     <Refine
       {...providers}
+      notificationProvider={{open: console.log, close: console.log}}
       routerProvider={routerBindings}
       resources={[
         {

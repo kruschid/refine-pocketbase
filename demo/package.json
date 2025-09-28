@@ -19,6 +19,7 @@
     "react-router": "^7.9.1",
     "react-router-dom": "^7.9.1",
     "refine-pocketbase": "file:../lib",
+    "remeda": "^2.32.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
@@ -35,7 +36,8 @@
     "dev": "refine dev --host 0.0.0.0",
     "build": "tsc && refine build",
     "preview": "refine start",
-    "refine": "refine"
+    "refine": "refine",
+    "test": "playwright test --ui"
   },
   "browserslist": {
     "production": [
