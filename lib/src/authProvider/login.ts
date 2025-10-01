@@ -1,41 +1,27 @@
-import type { AuthActionResponse } from "@refinedev/core";
+import type { AuthActionResponse, SuccessNotificationResponse } from "@refinedev/core";
 import type PocketBase from "pocketbase";
 import type { CommonOptions, OAuth2AuthConfig, RecordOptions } from "pocketbase";
-import { isClientResponseError } from "../utils";
 import type { RequiredAuthOptions, TranslateFn } from ".";
+import type { OtpHandler } from "../hooks/useOtp";
+import { isClientResponseError } from "../utils";
 
 export interface LoginWithProvider extends OAuth2AuthConfig {
   providerName?: string; // providerName prop is used by several AuthPage implementations
+  translate?: TranslateFn;
 }
 
-export type LoginWithPassword = (
-  | { email: string; }
-  | { username: string; }
-) & {
+export interface LoginWithEmail {
+  email: string;
   password?: string;
+  otpHandler?: OtpHandler;
   otpOptions?: CommonOptions;
   options?: RecordOptions;
-};
-
-export interface LoginWithOtp {
-  otp: string;
-  otpId: string;
-  mfaId?: string;
-  options?: CommonOptions;
-}
-
-export type LoginQueryParams = Pick<LoginWithOtp, "mfaId" | "otpId"> & {
-  to?: string; // defined and used by refine useLogin
-};
-
-export type LoginArgs = (
-  | LoginWithProvider
-  | LoginWithOtp
-  | LoginWithPassword
-) & {
   translate?: TranslateFn;
-  redirectTo?: string;
 };
+
+export type LoginArgs =
+  | LoginWithProvider
+  | LoginWithEmail;
 
 export const login = (
   pb: PocketBase,
@@ -44,114 +30,28 @@ export const login = (
   translate,
   ...loginArgs
 }: LoginArgs): Promise<AuthActionResponse> => {
-  try {
-    const successNotification = translate
-      ? {
-          message: translate(
-            "authProvider.login.successMessage",
-            "Login successful"
-          ),
-          description: translate(
-            "authProvider.login.successDescription",
-            "You're now signed in and ready to go."
-          ),
-        }
-      : undefined;
+  const successNotification = translate
+    ? {
+        message: translate(
+          "authProvider.login.successMessage",
+          "Login successful"
+        ),
+        description: translate(
+          "authProvider.login.successDescription",
+          "You're now signed in and ready to go."
+        ),
+      }
+    : undefined;
 
-    
+  try {    
     if (isLoginWithProvider(loginArgs)) {
-      await pb.collection(options.collection).authWithOAuth2({
-        ...loginArgs,
-        provider: loginArgs.providerName ?? loginArgs.provider,
-      });
-
-      if (pb.authStore.isValid) {
-        return {
-          success: true,
-          successNotification,
-          redirectTo: options.loginRedirectTo,
-        };
-      }
-    } else if (isLoginWithOtp(loginArgs)) {
-      if (!loginArgs.otpId) {
-        options.debug?.("otpId is undefined");
-        throw new Error("otpId is undefined");
-      }
-
-      await pb
-        .collection(options.collection)
-        .authWithOTP(loginArgs.otpId, loginArgs.otp, {
-          ...loginArgs.options,
-          mfaId: loginArgs.mfaId,
-        });
-
-      if (pb.authStore.isValid) {
-        return {
-          success: true,
-          successNotification,
-          redirectTo: options.loginRedirectTo,
-        };
-      } else {
-        options.debug?.("invalid otp")
-        throw Error("invalid otp");
-      }
-    } else if (isLoginWithPassword(loginArgs)) {
-      const emailOrUsername =
-        "email" in loginArgs ? loginArgs.email : loginArgs.username;
-
-      // otp request for passwordless login 
+      return loginWithProvider(pb, loginArgs, options, successNotification);
+    } else if (isLoginWithEmail(loginArgs)) {
+      // passwordless login 
       if (!loginArgs.password) {
-        const { otpId } = await pb
-          .collection(options.collection)
-          .requestOTP(emailOrUsername, loginArgs.otpOptions);
-
-        return {
-          success: true,
-          successNotification,
-          redirectTo: options.otpRedirectTo
-            ? `${options.otpRedirectTo}?otpId=${otpId}`
-            : undefined,
-        };
+        return loginWithOtp(pb, loginArgs, options, successNotification);
       }
-
-      try {
-        await pb
-          .collection(options.collection)
-          .authWithPassword(emailOrUsername, loginArgs.password, loginArgs.options);
-
-        if (pb.authStore.isValid) {
-          return {
-            success: true,
-            successNotification,
-            redirectTo: options.loginRedirectTo,
-          };
-        }
-      } catch (err: unknown) {
-        if (!isClientResponseError(err)) {
-          options.debug?.("unknown error", err)
-          throw new Error("unknown error");
-        }
-        if( !options.otpRedirectTo ) {
-          options.debug?.("loginOtpRedirectTo must be defined")
-          throw Error("loginOtpRedirectTo must be defined");
-        }
-  
-        const mfaId: string | undefined = err.response.mfaId;
-
-        if (mfaId) {
-          const { otpId } = await pb
-            .collection(options.collection)
-            .requestOTP(emailOrUsername, loginArgs.otpOptions);
-          return {
-            success: true,
-            successNotification,
-            redirectTo: withQueryParams(options.otpRedirectTo, {otpId, mfaId}),
-          };
-        } else {
-          options.debug?.("invalid credentials")
-          throw Error("invalid credentials");
-        }
-      }
+      return loginWithPassword(pb, loginArgs, options, successNotification);
     }
   } catch {
     return {
@@ -198,26 +98,127 @@ const isLoginWithProvider = (x: unknown): x is LoginWithProvider =>
   "provider" in x &&
   (typeof x.providerName === "string" || typeof x.provider === "string");
 
-const isLoginWithOtp = (x: unknown): x is LoginWithOtp =>
+const isLoginWithEmail = (x: unknown): x is LoginWithEmail =>
   typeof x === "object" &&
   x !== null &&
-  "otp" in x &&
-  typeof x.otp === "string";
+  "email" in x;
 
-const isLoginWithPassword = (x: unknown): x is LoginWithPassword =>
-  typeof x === "object" &&
-  x !== null &&
-  Object.keys(x).some((key) => ["email", "username", "password"].includes(key));
+const loginWithProvider = async (
+  pb: PocketBase,
+  loginArgs: LoginWithProvider,
+  options: RequiredAuthOptions,
+  successNotification?: SuccessNotificationResponse,
+): Promise<AuthActionResponse> => {
+  await pb.collection(options.collection).authWithOAuth2({
+    ...loginArgs,
+    provider: loginArgs.providerName ?? loginArgs.provider,
+  });
 
-const withQueryParams = (path: string, params: LoginQueryParams) => {
-  const url = new URL(
-    typeof window !== "undefined"
-      ? window.location.href
-      : "https://localhost"
-  );
-  for(const [key, value] of Object.entries(params)) {
-    url.searchParams.set(key, value);
+  if (pb.authStore.isValid) {
+    return {
+      success: true,
+      successNotification,
+      redirectTo: options.loginRedirectTo,
+    };
+  } else {
+    options.debug?.("login with provider failed")
+    throw Error("login with provider failed");
+  }
+}
+
+const loginWithOtp = async (
+  pb: PocketBase,
+  loginArgs: LoginWithEmail,
+  options: RequiredAuthOptions,
+  successNotification?: SuccessNotificationResponse,
+): Promise<AuthActionResponse> => {
+  const { otpId } = await pb
+    .collection(options.collection)
+    .requestOTP(loginArgs.email, loginArgs.otpOptions);
+
+  if(!loginArgs.otpHandler) {
+    throw Error("otpHook must be defined for passwordless login");
   }
 
-  return `${path}${url.search}`;
+  const otp = await loginArgs.otpHandler.request();
+
+  await pb
+    .collection(options.collection)
+    .authWithOTP(otpId, otp, loginArgs.options);
+
+  if (pb.authStore.isValid) {
+    return {
+      success: true,
+      successNotification,
+      redirectTo: options.loginRedirectTo,
+    };
+  } else {
+    options.debug?.("invalid otp")
+    throw Error("invalid otp");
+  }
+}
+
+const loginWithPassword = async (
+  pb: PocketBase,
+  loginArgs: LoginWithEmail,
+  options: RequiredAuthOptions,
+  successNotification?: SuccessNotificationResponse,
+): Promise<AuthActionResponse> => {
+  if(!loginArgs.password) {
+    throw Error("password is requiered")
+  }
+  try {
+    await pb
+      .collection(options.collection)
+      .authWithPassword(loginArgs.email, loginArgs.password, loginArgs.options);
+
+    if (pb.authStore.isValid) {
+      return {
+        success: true,
+        successNotification,
+        redirectTo: options.loginRedirectTo,
+      };
+    }
+  } catch (err: unknown) {
+    if (!isClientResponseError(err)) {
+      options.debug?.("unknown error", err)
+      throw new Error("unknown error");
+    }
+    if( !loginArgs.otpHandler ) {
+      options.debug?.("otpHook must be defined")
+      throw Error("otpHook must be defined");
+    }
+
+    const mfaId: string | undefined = err.response.mfaId;
+
+    if (mfaId) {
+      const { otpId } = await pb
+        .collection(options.collection)
+        .requestOTP(loginArgs.email, loginArgs.otpOptions);
+      
+      const otp = await loginArgs.otpHandler?.request();
+
+      await pb
+        .collection(options.collection)
+        .authWithOTP(otpId, otp, {
+          ...loginArgs.options,
+          mfaId,
+        });
+
+      if (pb.authStore.isValid) {
+        return {
+          success: true,
+          successNotification,
+          redirectTo: options.loginRedirectTo,
+        };
+      } else {
+        options.debug?.("mfa failed")
+        throw Error("mfa failed");
+      }
+    } else {
+      options.debug?.("invalid credentials")
+      throw Error("invalid credentials");
+    }
+  }
+  throw Error("unknown error");
 }

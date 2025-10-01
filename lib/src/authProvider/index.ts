@@ -22,7 +22,6 @@ export interface AuthOptions {
   forgotPasswordErrorRedirectTo?: string;
   updatePasswordRedirectTo?: string;
   updatePasswordErrorRedirectTo?: string;
-  otpRedirectTo?: string;
   loginRedirectTo?: string;
   loginErrorRedirectTo?: string;
   logoutRedirectTo?: string;
