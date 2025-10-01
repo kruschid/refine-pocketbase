@@ -1,49 +1,27 @@
 /** biome-ignore-all lint/correctness/useUniqueElementIds: test ids for playwright */
-import { useGo, useLink, useLogin, useParsed } from "@refinedev/core";
-import { useEffect, useState } from "react";
-import type { LoginArgs, LoginQueryParams } from "refine-pocketbase";
-import { omit } from "remeda";
+import { useLink, useLogin, useTranslate } from "@refinedev/core";
+import { type LoginArgs, useOtp } from "refine-pocketbase";
 
 export const LoginPage = () => {
   const Link = useLink();
-  const go = useGo();
-  const { params } = useParsed<LoginQueryParams>();
-  const isOtp = params?.mfaId != null || params?.otpId != null;
   const { mutate: login } = useLogin<LoginArgs>();
-  const [redirectTo, setRedirectTo] = useState<string>();
-
-  /**
-   * Workaround:
-   * the `to` parameter invalidates any custom forwarding targets such as `otpRedirectTo`
-   * effectively dropping MFA params that are necessary for OTP field to appear
-   * so we remove that parameter from the search query for manual handling
-   */
-  useEffect(() => {
-    if(params?.to) {
-      setRedirectTo(params.to);
-      go({
-        query: omit(params, ["to"]),
-        type: "replace",
-      })
-    }
-  },[go, params])
+  const otpHandler = useOtp();
+  const translate = useTranslate();
   
   const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
 
-    if(isOtp) {
-      login({
-        otp: formData.get("otp") as string,
-        mfaId: params?.mfaId,
-        otpId: params?.otpId,
-        redirectTo,
-      });
+    if(otpHandler.isPending) {
+      otpHandler.resolve(
+        formData.get("otp") as string,
+      );
     } else {
       login({
         email: formData.get("email") as string,
         password: formData.get("password") as string,
-        redirectTo,
+        otpHandler,
+        translate,
       });
     }
   }
@@ -68,7 +46,7 @@ export const LoginPage = () => {
           required
           size={20}
         />
-        {isOtp && (
+        {otpHandler.isPending && (
           <>
             <label htmlFor="login-otp">OTP</label>
             <input
@@ -77,6 +55,11 @@ export const LoginPage = () => {
               name="otp"
               required
               size={20}
+            />
+            <input
+              onClick={otpHandler.reject}
+              type="button"
+              value="cancel"
             />
           </>
         )}

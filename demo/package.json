@@ -19,7 +19,6 @@
     "react-router": "^7.9.1",
     "react-router-dom": "^7.9.1",
     "refine-pocketbase": "file:../lib",
-    "remeda": "^2.32.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
