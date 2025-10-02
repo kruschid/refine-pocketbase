@@ -30,18 +30,14 @@ export const login = (
   translate,
   ...loginArgs
 }: LoginArgs): Promise<AuthActionResponse> => {
-  const successNotification = translate
-    ? {
-        message: translate(
-          "authProvider.login.successMessage",
-          "Login successful"
-        ),
-        description: translate(
-          "authProvider.login.successDescription",
-          "You're now signed in and ready to go."
-        ),
-      }
-    : undefined;
+  const successNotification ={
+    message: translate 
+      ? translate("authProvider.login.successMessage", "Login successful")
+      : "Login successful",
+    description: translate
+      ? translate("authProvider.login.successDescription", "You're now signed in and ready to go.")
+      : "You're now signed in and ready to go.",
+  };
 
   try {    
     if (isLoginWithProvider(loginArgs)) {
@@ -49,9 +45,9 @@ export const login = (
     } else if (isLoginWithEmail(loginArgs)) {
       // passwordless login 
       if (!loginArgs.password) {
-        return loginWithOtp(pb, loginArgs, options, successNotification);
+        return loginWithOtp(pb, loginArgs, options, successNotification, translate);
       }
-      return loginWithPassword(pb, loginArgs, options, successNotification);
+      return loginWithPassword(pb, loginArgs, options, successNotification, translate);
     }
   } catch {
     return {
@@ -131,6 +127,7 @@ const loginWithOtp = async (
   loginArgs: LoginWithEmail,
   options: RequiredAuthOptions,
   successNotification?: SuccessNotificationResponse,
+  translate?: TranslateFn,
 ): Promise<AuthActionResponse> => {
   const { otpId } = await pb
     .collection(options.collection)
@@ -140,7 +137,22 @@ const loginWithOtp = async (
     throw Error("otpHook must be defined for passwordless login");
   }
 
-  const otp = await loginArgs.otpHandler.request();
+  let otp: string;
+  try {
+    otp = await loginArgs.otpHandler.request();
+  } catch {
+    return {
+      success: false,
+      error: {
+        name: translate
+          ? translate("authProvider.login.otpCanceled", "Verification canceled")
+          : "Verification canceled",
+        message: translate
+          ? translate("authProvider.login.otpCanceledMessage", "You stopped entering the code. Try again when you’re ready.")
+          : "You stopped entering the code. Try again when you’re ready.",
+      }
+    }
+  }
 
   await pb
     .collection(options.collection)
@@ -163,6 +175,7 @@ const loginWithPassword = async (
   loginArgs: LoginWithEmail,
   options: RequiredAuthOptions,
   successNotification?: SuccessNotificationResponse,
+  translate?: TranslateFn,
 ): Promise<AuthActionResponse> => {
   if(!loginArgs.password) {
     throw Error("password is requiered")
@@ -196,7 +209,22 @@ const loginWithPassword = async (
         .collection(options.collection)
         .requestOTP(loginArgs.email, loginArgs.otpOptions);
       
-      const otp = await loginArgs.otpHandler?.request();
+      let otp: string;
+      try {
+        otp = await loginArgs.otpHandler.request();
+      } catch {
+        return {
+          success: false,
+          error: {
+            name: translate
+              ? translate("authProvider.login.otpCanceled", "Verification canceled")
+              : "Verification canceled",
+            message: translate
+              ? translate("authProvider.login.otpCanceledMessage", "You stopped entering the code. Try again when you’re ready.")
+              : "You stopped entering the code. Try again when you’re ready.",
+          }
+        }
+      }
 
       await pb
         .collection(options.collection)
@@ -222,3 +250,4 @@ const loginWithPassword = async (
   }
   throw Error("unknown error");
 }
+
