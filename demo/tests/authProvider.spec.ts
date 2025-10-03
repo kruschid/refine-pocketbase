@@ -1,11 +1,27 @@
-import { APIRequestContext, expect, test } from "@playwright/test";
+import { type APIRequestContext, expect, test } from "@playwright/test";
+import PocketBase from "pocketbase";
 import { v4 as uuidv4 } from "uuid";
 
 const INBUCKET_URL = "http://127.0.0.1:9000";
 const EXISTING_EMAIL = "test-user@example.com";
 
+const PB_URL = "http://127.0.0.1:8090";
+const EMAIL = `test@example.com`;
+const PASSWORD = "1234567890";
+
+const pb = new PocketBase(PB_URL);
+
+pb.collection("_superusers").authWithPassword(EMAIL, PASSWORD);
+
 test.describe("auth provider", () => {
-  test("register and login happy path", async ({ page, request }) => {
+  test("login with mfa happy path", async ({ page, request }) => {
+    // activate mfa 
+    await pb.collections.update("users", {
+      passwordAuth: { enabled: true },
+      otp: { enabled: true },
+      mfa: { enabled: true },
+    });
+  
     const mailbox = uuidv4();
     const [email, password] = [`${mailbox}@example.com`, "1234567890"];
 
@@ -23,16 +39,80 @@ test.describe("auth provider", () => {
     await page.fill("#login-password", password); 
     await page.click("#login-submit");
 
-    // 1. assert notification that otp was sent to email
-
-    // 2. fetch otp from inbucket
+    // fetch otp from inbucket
     await page.waitForTimeout(2000); // wait for email delivery
     const token = await fetchLatestEmail(request, mailbox);
-    // 3. fill out otp 
+    // fill out otp 
     await page.fill("#login-otp", token);
-    // 4. submit
     await page.click("#login-submit");
     await page.waitForURL("**/posts");
+  
+    //  logout
+    await page.click("#auth-logout");
+    await page.waitForURL("**/login**");
+  });
+
+  test("login with otp happy path", async ({ page, request }) => {
+    // activate otp 
+    await pb.collections.update("users", {
+      passwordAuth: { enabled: false },
+      otp: { enabled: true },
+      mfa: { enabled: false },
+    });
+    
+    const email = EXISTING_EMAIL; // only registered users are supported for now
+    const mailbox = email.split("@")[0];
+
+    await page.goto("/");
+    
+    // login
+    await page.waitForURL("**/login**");
+    await page.fill("#login-email", email);
+    await page.click("#login-submit");
+
+    // fetch otp from inbucket
+    await page.waitForTimeout(2000); // wait for email delivery
+    const token = await fetchLatestEmail(request, mailbox);
+    // fill out otp 
+    await page.fill("#login-otp", token);
+    await page.click("#login-submit");
+    await page.waitForURL("**/posts");
+  
+    //  logout
+    await page.click("#auth-logout");
+    await page.waitForURL("**/login*");
+  });
+
+  test("login with password happy path", async ({ page }) => {
+    await pb.collections.update("users", {
+      passwordAuth: { enabled: true },
+      otp: { enabled: false },
+      mfa: { enabled: false },
+    });
+  
+    const mailbox = uuidv4();
+    const [email, password] = [`${mailbox}@example.com`, "1234567890"];
+
+    await page.goto("/");
+
+    //register 
+    await page.click('a[href="/register"]');
+    await page.fill("#register-email", email);
+    await page.fill("#register-password", password);
+    await page.click("#register-submit");
+    
+    // login
+    await page.waitForURL("**/login**");
+    await page.fill("#login-email", email);
+    await page.fill("#login-password", password); 
+    await page.click("#login-submit");
+
+    await page.click("#login-submit");
+    await page.waitForURL("**/posts");
+  
+    //  logout
+    await page.click("#auth-logout");
+    await page.waitForURL("**/login*");
   });
 
   test("register response contains errors", async ({ page }) => {
@@ -136,8 +216,8 @@ const fetchLatestEmail = async (
   request
     .get(`${INBUCKET_URL}/api/v1/mailbox/${mailbox}`)
     .then((res) => res.json())
-    .then(([{ id }]) =>
-      request.get(`${INBUCKET_URL}/api/v1/mailbox/${mailbox}/${id}`)
+    .then((emails) =>
+      request.get(`${INBUCKET_URL}/api/v1/mailbox/${mailbox}/${emails.at(-1).id}`)
     )
     .then((res) => res.json())
     .then((res) => res.body.text);
