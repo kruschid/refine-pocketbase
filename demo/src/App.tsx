@@ -1,4 +1,5 @@
-import { Authenticated, ErrorComponent, type NotificationProvider, Refine } from "@refinedev/core";
+/** biome-ignore-all lint/correctness/useUniqueElementIds: using ids for playwrigt tests */
+import { Authenticated, ErrorComponent, type NotificationProvider, Refine, useIsAuthenticated, useLogout } from "@refinedev/core";
 import { HeadlessCreateInferencer, HeadlessEditInferencer, HeadlessListInferencer, HeadlessShowInferencer } from "@refinedev/inferencer/headless";
 import routerBindings, { DocumentTitleHandler, NavigateToResource } from "@refinedev/react-router";
 import PocketBase from "pocketbase";
@@ -64,6 +65,7 @@ export const App = () => {
         }}
       >
         {notification ? JSON.stringify(notification) : null}
+        <LogoutButton />
         <Routes>
           <Route element={
             <Authenticated
@@ -96,3 +98,19 @@ export const App = () => {
     </BrowserRouter>
   );
 }
+
+const LogoutButton = () => {
+  const { data: isAuthenticatedData } = useIsAuthenticated();
+  const { mutate: logout } = useLogout();
+
+  return (
+    isAuthenticatedData?.authenticated && (
+      <input
+        type="button"
+        value="logout"
+        id="auth-logout"
+        onClick={() => logout()}
+      />
+    )
+  )
+} 
