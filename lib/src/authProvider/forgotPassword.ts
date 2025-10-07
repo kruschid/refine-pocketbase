@@ -2,10 +2,8 @@ import type { AuthActionResponse } from "@refinedev/core";
 import type PocketBase from "pocketbase";
 import type { RequiredAuthOptions, TranslateFn } from ".";
 
-export type ForgotPasswordArgs = (
-  | { email: string; }
-  | { username: string; }
-) & {
+export interface ForgotPasswordArgs {
+  email: string;
   translate?: TranslateFn;
 };
 
@@ -13,15 +11,13 @@ export const forgotPassword = (
   pb: PocketBase,
   options: RequiredAuthOptions,
 ) => async ({
+  email,
   translate,
-  ...args
 }: ForgotPasswordArgs): Promise<AuthActionResponse> => {
-  const emailOrUsername = "email" in args ? args.email : args.username;
-
   try {
     await pb
       .collection(options.collection)
-      .requestPasswordReset(emailOrUsername);
+      .requestPasswordReset(email);
 
     return {
       success: true,
@@ -42,6 +38,17 @@ export const forgotPassword = (
   } catch {
     return {
       success: false,
-    };
+      error: translate ? {
+        statusCode: 400,
+        message: translate(
+          "authProvider.forgotPassword.errorMessage",
+          "Password reset email not sent",
+        ),
+        description: translate(
+          "authProvider.forgotPassword.errorDescription",
+          "Something went wrong while sending the reset link. Please check your email address and try again."
+        )
+      } : undefined,
+    }
   }
 };
