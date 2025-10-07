@@ -1,79 +1,54 @@
-/** biome-ignore-all lint/correctness/useUniqueElementIds: usage of test ids for playwright */
+/** biome-ignore-all lint/correctness/useUniqueElementIds: usage of test ids for playwright required */
 import { useParsed, useTranslate, useUpdatePassword } from "@refinedev/core";
-import { useState } from "react";
-import { getHttpErrorField, isHttpError } from "../utils/errors";
 
 export const UpdatePasswordPage = () => {
   const translate = useTranslate();
-  const { mutate: updatePassword, isPending, data } = useUpdatePassword();
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const { mutate: updatePassword, isPending } = useUpdatePassword();
 
   const { params } = useParsed<{ token: string }>();
   const token = params?.token;
 
-  console.log(token);
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const password = formData.get("password") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
+
+    if (token) {
+      updatePassword({
+        password,
+        confirmPassword,
+        token,
+        translate,
+      });
+    }
+  }
 
   return (
     <>
-      <h1>
-        {translate("pages.updatePassword.title", "Update Password")}
-      </h1>
+      <h1>Update Password</h1>
       <hr />
-      {isHttpError(data?.error) && (
-        <p id="token-error">
-          {getHttpErrorField(data.error, "token")}
-        </p>
-      )}
       <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (token) {
-            updatePassword({
-              password: newPassword,
-              confirmPassword,
-              token,
-            });
-          }
-        }}
+        onSubmit={handleSubmit}
       >
-        <label htmlFor="password-input">
-          {translate("pages.updatePassword.fields.password", "New Password")}
-        </label>
+        <label htmlFor="password-input">New Password</label>
         <input
           id="password-input"
           name="password"
           type="password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
         />
-        {isHttpError(data?.error) && (
-          <p id="password-input-error">
-            {getHttpErrorField(data.error, "password")}
-          </p>
-        )}
         <label htmlFor="confirm-password-input">
-          {translate(
-            "pages.updatePassword.fields.confirmPassword",
-            "Confirm New Password",
-          )}
+          Confirm New Password
         </label>
         <input
           id="confirm-password-input"
           name="confirmPassword"
           type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
         />
-        {isHttpError(data?.error) && (
-          <p id="confirm-password-input-error">
-            {getHttpErrorField(data.error, "passwordConfirm")}
-          </p>
-        )}
         <input
           type="submit"
           disabled={isPending}
-          value={translate("pages.updatePassword.buttons.submit", "Update")}
+          value="Update"
         />
       </form>
     </>

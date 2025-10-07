@@ -1,20 +1,19 @@
 /** biome-ignore-all lint/correctness/useUniqueElementIds: usage of test ids for playwright  */
 import { useLink, useRegister, useTranslate } from "@refinedev/core";
-import { getHttpErrorField, isHttpError } from "../utils/errors";
 
 export const RegisterPage = () => {
   const Link = useLink();
 
   const translate = useTranslate();
 
-  const { mutate: register, isPending, data } = useRegister();
+  const { mutate: register, isPending } = useRegister();
 
   const handleRegister = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
-    register({ email, password });
+    register({ email, password, translate });
   }
 
   return (
@@ -22,13 +21,8 @@ export const RegisterPage = () => {
       <h1>Sign up for your account</h1>
       <hr />
       <form onSubmit={handleRegister}>
-        {data?.error && (
-          <p id="register-error">
-            {data.error.message}
-          </p>
-        )}
         <label htmlFor="register-email">
-          {translate("pages.register.fields.email", "Email")}
+          Email
         </label>
         <input
           id="register-email"
@@ -36,13 +30,8 @@ export const RegisterPage = () => {
           type="email"
           required
         />
-        {isHttpError(data?.error) && (
-          <p id="register-email-error">
-            {getHttpErrorField(data.error, "email")}
-          </p>
-        )}
         <label htmlFor="register-password">
-          {translate("pages.register.fields.password", "Password")}
+          Password
         </label>
         <input
           id="register-password"
@@ -50,11 +39,6 @@ export const RegisterPage = () => {
           type="password"
           required
         />
-        {isHttpError(data?.error) && (
-          <p id="register-password-error">
-            {getHttpErrorField(data.error, "password")}
-          </p>
-        )}
         <input
           id="register-submit"
           type="submit"
@@ -63,8 +47,8 @@ export const RegisterPage = () => {
         />
       </form>
       <div>
-        {translate("pages.login.buttons.haveAccount", "Have an account?")}{" "}
-        <Link to="/login" id="register-submit">{translate("pages.login.signin", "Sign in")}</Link>
+        Have an account?{" "}
+        <Link to="/login" id="register-submit">Sign in</Link>
       </div>
     </div >
   );
