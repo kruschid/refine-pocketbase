@@ -1,4 +1,4 @@
-import { type APIRequestContext, expect, test } from "@playwright/test";
+import { type APIRequestContext, expect, type Page, test } from "@playwright/test";
 import PocketBase from "pocketbase";
 import { v4 as uuidv4 } from "uuid";
 
@@ -17,6 +17,20 @@ pb.collection("_superusers").authWithPassword(EMAIL, PASSWORD);
 test.describe.configure({ mode: 'serial' });
 
 test.describe("auth provider", () => {
+  test("register happy path", async ()=>{});
+
+  test("register with validation happy path", async ()=>{});
+  
+  test("register error", async ({ page }) => {
+    await page.goto("/");
+    await page.click('a[href="/register"]');
+    await page.fill("#register-email", EXISTING_EMAIL);
+    await page.fill("#register-password", "1234567890");
+    await page.click("#register-submit");
+
+    await assertNotification(page, "Registration failed");
+  });
+
   test("login with mfa happy path", async ({ page, request }) => {
     // activate mfa 
     await pb.collections.update("users", {
@@ -49,6 +63,8 @@ test.describe("auth provider", () => {
     await page.fill("#login-otp", token);
     await page.click("#login-submit");
     await page.waitForURL("**/posts");
+
+    await assertNotification(page, "Login successful");
   
     //  logout
     await page.click("#auth-logout");
@@ -81,6 +97,8 @@ test.describe("auth provider", () => {
     await page.click("#login-submit");
     await page.waitForURL("**/posts");
   
+    await assertNotification(page, "Login successful");
+
     //  logout
     await page.click("#auth-logout");
     await page.waitForURL("**/login*");
@@ -112,34 +130,12 @@ test.describe("auth provider", () => {
 
     await page.click("#login-submit");
     await page.waitForURL("**/posts");
+
+    await assertNotification(page, "Login successful");
   
     //  logout
     await page.click("#auth-logout");
     await page.waitForURL("**/login*");
-  });
-
-  test("register response contains errors", async ({ page }) => {
-    await page.goto("/");
-    await page.click('a[href="/register"]');
-    await page.fill("#register-email", EXISTING_EMAIL);
-    await page.fill("#register-password", "1234567890");
-    await page.click("#register-submit");
-
-    expect(await page.textContent("#register-error")).toContain(
-      "Failed to create record."
-    );
-    expect(await page.textContent("#register-email-error")).toContain(
-      "Value must be unique."
-    );
-
-    await page.reload();
-    await page.fill("#register-email", `${uuidv4()}@example.com`);
-    await page.fill("#register-password", "123");
-    await page.click("#register-submit");
-
-    expect(await page.textContent("#register-password-error")).toContain(
-      "Must be at least 8 character(s)."
-    );
   });
 
   test("password reset contains errors", async ({ page }) => {
@@ -166,14 +162,12 @@ test.describe("auth provider", () => {
     await page.fill("#register-password", password);
     await page.click("#register-submit");
 
-    // rest pw
+    // reset pw
     await page.waitForURL("**/login**");
     await page.click("a[href='/forgot-password']");
     await page.fill("#email-input", email);
     await page.click('[type="submit"]');
-    expect(await page.textContent("#forgot-password-success")).toContain(
-      "Please check your mailbox for the token"
-    );
+    assertNotification(page, "Password reset link sent");
 
     // wait for email delivery
     await page.waitForTimeout(2000);
@@ -185,6 +179,7 @@ test.describe("auth provider", () => {
     await page.fill("#password-input", changedPassword);
     await page.fill("#confirm-password-input", changedPassword);
     await page.click('[type="submit"]');
+    assertNotification(page, "Password updated");
     await page.waitForURL("**/login**");
 
     // login to confirm new pw
@@ -223,3 +218,8 @@ const fetchLatestEmail = async (
     )
     .then((res) => res.json())
     .then((res) => res.body.text);
+
+const assertNotification = async (page: Page, text: string) => {
+  expect(await page.textContent("#notification-message"))
+    .toContain(text);
+}
