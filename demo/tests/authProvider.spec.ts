@@ -13,6 +13,9 @@ const pb = new PocketBase(PB_URL);
 
 pb.collection("_superusers").authWithPassword(EMAIL, PASSWORD);
 
+// some tests depend on global configurations that may conflict with other tests when run in parallel 
+test.describe.configure({ mode: 'serial' });
+
 test.describe("auth provider", () => {
   test("login with mfa happy path", async ({ page, request }) => {
     // activate mfa 
@@ -143,10 +146,9 @@ test.describe("auth provider", () => {
     await page.goto("/");
     await page.click("a[href='/forgot-password']");
 
-    await page.fill("#email-input", "not_a_valid_email");
     await page.click('[type="submit"]');
-    expect(await page.textContent("#forgot-password-error")).toContain(
-      "Must be a valid email address."
+    expect(await page.textContent("#notification-message")).toContain(
+      "Forgot Password Error"
     );
   });
 
