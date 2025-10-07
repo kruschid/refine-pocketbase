@@ -16,22 +16,39 @@ export const updatePassword = (
   password,
   translate,
 }: UpdatePasswordArgs): Promise<AuthActionResponse> => {
-  await pb
-    .collection(options.collection)
-    .confirmPasswordReset(token, password, password);
-
-  return {
-    success: true,
-    redirectTo: options.updatePasswordRedirectTo,
-    successNotification: translate ? {
-      message: translate(
-        "authProvider.updatePassword.successMessage",
-        "Password updated",
-      ),
-      description: translate(
-        "authProvider.updatePassword.successDescription",
-        "Your password has been changed successfully."
-      ),
-    } : undefined,
-  };
+  try {
+    await pb
+      .collection(options.collection)
+      .confirmPasswordReset(token, password, password);
+  
+    return {
+      success: true,
+      redirectTo: options.updatePasswordRedirectTo,
+      successNotification: translate ? {
+        message: translate(
+          "authProvider.updatePassword.successMessage",
+          "Password updated",
+        ),
+        description: translate(
+          "authProvider.updatePassword.successDescription",
+          "Your password has been changed successfully."
+        ),
+      } : undefined,
+    };
+  } catch {
+    return {
+      success: false,
+      error: translate ? {
+        statusCode: 400,
+        message: translate(
+          "authProvider.updatePassword.errorMessage",
+          "Password update failed",
+        ),
+        description: translate(
+          "authProvider.updatePassword.errorDescription",
+          "Something went wrong while updating your password. Please try again later."
+        )
+      } : undefined,
+    }
+  }
 }

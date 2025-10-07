@@ -21,46 +21,63 @@ export const register = (
   name,
   translate,
 }: RegisterArgs): Promise<AuthActionResponse> => {
-  await pb.collection(options.collection).create({
-    email,
-    username,
-    name,
-    password,
-    passwordConfirm: password,
-  });
-
-  if (options.requestVerification) {
-    await pb
-      .collection(options.collection)
-      .requestVerification(email);
-      
-      return {
-        success: true,
-        redirectTo: options.registerRedirectTo,
-        successNotification: translate ? {
-          description: translate(
-            "authProvider.register.requestVerificationDescription",
-            "Account verification"
-          ),
-          message: translate(
-            "authProvider.register.requestVerificationMessage",
-            "Please verify your account by clicking the link we sent to your email address"
-          ),
-        } : undefined,
-      }
+  try {
+    await pb.collection(options.collection).create({
+      email,
+      username,
+      name,
+      password,
+      passwordConfirm: password,
+    });
+  
+    if (options.requestVerification) {
+      await pb
+        .collection(options.collection)
+        .requestVerification(email);
+        
+        return {
+          success: true,
+          redirectTo: options.registerRedirectTo,
+          successNotification: translate ? {
+            description: translate(
+              "authProvider.register.requestVerificationDescription",
+              "Account verification"
+            ),
+            message: translate(
+              "authProvider.register.requestVerificationMessage",
+              "Please verify your account by clicking the link we sent to your email address"
+            ),
+          } : undefined,
+        }
+    }
+    return {
+      success: true,
+      redirectTo: options.registerRedirectTo,
+      successNotification: translate ? {
+        description: translate(
+          "authProvider.register.completedDescription",
+          "Registration completed",
+        ),
+        message: translate(
+          "authProvider.register.completedMessage",
+          "Please sign in using your credentials",
+        ),
+      } : undefined,
+    };
+  } catch {
+    return {
+      success: false,
+      error: translate ? {
+        statusCode: 400,
+        name: translate(
+          "authProvider.register.errorName",
+          "Registration failed",
+        ),
+        message: translate(
+          "authProvider.register.errorMessage",
+          "Something went wrong while creating your account. Please try again.",
+        ),
+      } : undefined,
+    }
   }
-  return {
-    success: true,
-    redirectTo: options.registerRedirectTo,
-    successNotification: translate ? {
-      description: translate(
-        "authProvider.register.completedDescription",
-        "Registration completed",
-      ),
-      message: translate(
-        "authProvider.register.completedMessage",
-        "Please sign in using your credentials",
-      ),
-    } : undefined,
-  };
 };
