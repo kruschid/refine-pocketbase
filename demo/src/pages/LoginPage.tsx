@@ -36,14 +36,12 @@ export const LoginPage = () => {
           id="login-email"
           name="email"
           type="email"
-          required
         />
         <label htmlFor="register-password">Password</label>
         <input
           id="login-password"
           type="password"
           name="password"
-          required
           size={20}
         />
         {otpHandler.isPending && (
@@ -53,7 +51,7 @@ export const LoginPage = () => {
               id="login-otp"
               type="text"
               name="otp"
-              required
+  
               size={20}
             />
             <input
