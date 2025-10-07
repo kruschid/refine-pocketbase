@@ -1,5 +1,5 @@
 /** biome-ignore-all lint/correctness/useUniqueElementIds: using ids for playwrigt tests */
-import { Authenticated, ErrorComponent, type NotificationProvider, Refine, useIsAuthenticated, useLogout } from "@refinedev/core";
+import { Authenticated, ErrorComponent, type NotificationProvider, type OpenNotificationParams, Refine, useIsAuthenticated, useLogout } from "@refinedev/core";
 import { HeadlessCreateInferencer, HeadlessEditInferencer, HeadlessListInferencer, HeadlessShowInferencer } from "@refinedev/inferencer/headless";
 import routerBindings, { DocumentTitleHandler, NavigateToResource } from "@refinedev/react-router";
 import PocketBase from "pocketbase";
@@ -29,7 +29,7 @@ const providers = {
 }
 
 export const App = () => {
-  const [notification, setNotification] = useState<unknown>();
+  const [notification, setNotification] = useState<OpenNotificationParams>();
   const notificationProvider: NotificationProvider = {
     open: setNotification,
     close: () => setNotification(undefined),
@@ -64,7 +64,12 @@ export const App = () => {
           projectId: "K2WTtI-rl83Fw-Fn1FJF",
         }}
       >
-        {notification ? JSON.stringify(notification) : null}
+        {notification && (
+          <p>
+            <strong id="notification-message">{notification.message}</strong><br />
+            <span id="notification-description">{notification.description}</span>
+          </p>
+        )}
         <LogoutButton />
         <Routes>
           <Route element={
