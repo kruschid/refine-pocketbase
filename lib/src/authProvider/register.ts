@@ -39,12 +39,12 @@ export const register = (
           success: true,
           redirectTo: options.registerRedirectTo,
           successNotification: translate ? {
-            description: translate(
-              "authProvider.register.requestVerificationDescription",
-              "Account verification"
-            ),
             message: translate(
               "authProvider.register.requestVerificationMessage",
+              "Account verification"
+            ),
+            description: translate(
+              "authProvider.register.requestVerificationDescription",
               "Please verify your account by clicking the link we sent to your email address"
             ),
           } : undefined,
@@ -54,12 +54,12 @@ export const register = (
       success: true,
       redirectTo: options.registerRedirectTo,
       successNotification: translate ? {
-        description: translate(
-          "authProvider.register.completedDescription",
-          "Registration completed",
-        ),
         message: translate(
           "authProvider.register.completedMessage",
+          "Registration completed",
+        ),
+        description: translate(
+          "authProvider.register.completedDescription",
           "Please sign in using your credentials",
         ),
       } : undefined,
