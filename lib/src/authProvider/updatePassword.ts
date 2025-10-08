@@ -40,11 +40,11 @@ export const updatePassword = (
       success: false,
       error: translate ? {
         statusCode: 400,
-        message: translate(
+        name: translate(
           "authProvider.updatePassword.errorMessage",
           "Password update failed",
         ),
-        description: translate(
+        message: translate(
           "authProvider.updatePassword.errorDescription",
           "Something went wrong while updating your password. Please try again later."
         )
