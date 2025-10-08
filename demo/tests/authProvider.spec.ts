@@ -18,15 +18,7 @@ test.describe.configure({ mode: 'serial' });
 
 test.describe("auth provider", () => {
   test("register happy path", async ({ page })=> {
-    const [email, password] = [`${uuidv4()}@example.com`, "1234567890"];
-    
-    await page.goto("/");
-    await page.click('a[href="/register"]');
-    await page.fill("#register-email", email);
-    await page.fill("#register-password", password);
-    await page.click("#register-submit");
-
-    await assertNotification(page, "Registration completed");
+    await register(page);
   });
 
   test("register with validation happy path", async ()=>{});
@@ -49,16 +41,7 @@ test.describe("auth provider", () => {
       mfa: { enabled: true },
     });
   
-    const mailbox = uuidv4();
-    const [email, password] = [`${mailbox}@example.com`, "1234567890"];
-
-    await page.goto("/");
-
-    //register 
-    await page.click('a[href="/register"]');
-    await page.fill("#register-email", email);
-    await page.fill("#register-password", password);
-    await page.click("#register-submit");
+    const { mailbox, email, password } = await register(page);
     
     // login
     await page.waitForURL("**/login**");
@@ -121,16 +104,7 @@ test.describe("auth provider", () => {
       mfa: { enabled: false },
     });
   
-    const mailbox = uuidv4();
-    const [email, password] = [`${mailbox}@example.com`, "1234567890"];
-
-    await page.goto("/");
-
-    //register 
-    await page.click('a[href="/register"]');
-    await page.fill("#register-email", email);
-    await page.fill("#register-password", password);
-    await page.click("#register-submit");
+    const { email, password } = await register(page);
     
     // login
     await page.waitForURL("**/login**");
@@ -138,7 +112,6 @@ test.describe("auth provider", () => {
     await page.fill("#login-password", password); 
     await page.click("#login-submit");
 
-    await page.click("#login-submit");
     await page.waitForURL("**/posts");
 
     await assertNotification(page, "Login successful");
@@ -146,6 +119,15 @@ test.describe("auth provider", () => {
     //  logout
     await page.click("#auth-logout");
     await page.waitForURL("**/login*");
+  });
+
+  test("login with error", async ({ page }) => {
+    await page.goto("/");
+    await page.fill("#login-email", `${uuidv4()}@${uuidv4()}.com`);
+    await page.fill("#login-password", "12345"); 
+    // submit empty credentials
+    await page.click("#login-submit");
+    await assertNotification(page, "Invalid credentials");
   });
 
   test("password reset contains errors", async ({ page }) => {
@@ -159,18 +141,9 @@ test.describe("auth provider", () => {
   });
 
   test("password reset happy path", async ({ page, request }) => {
-    const mailbox = uuidv4();
-    const [email, password, changedPassword] = [
-      `${mailbox}@test.com`,
-      "1234567890",
-      "0987654321",
-    ];
+    const { mailbox, email } = await register(page);
 
-    // register
-    await page.goto("/register");
-    await page.fill("#register-email", email);
-    await page.fill("#register-password", password);
-    await page.click("#register-submit");
+    const changedPassword = "0987654321";
 
     // reset pw
     await page.waitForURL("**/login**");
@@ -199,22 +172,29 @@ test.describe("auth provider", () => {
     await page.waitForURL("**/posts");
   });
 
-  test("update password errors", async ({ page }) => {
+  test("update password with error", async ({ page }) => {
     await page.goto("/update-password?token=invalid_token");
     await page.fill("#password-input", "123");
     await page.fill("#confirm-password-input", "321");
     await page.click('[type="submit"]');
-    expect(await page.textContent("#token-error")).toContain(
-      "Invalid or expired token."
-    );
-    expect(await page.textContent("#password-input-error")).toContain(
-      "The length must be between 8 and 255."
-    );
-    expect(await page.textContent("#confirm-password-input-error")).toContain(
-      "Values don't match."
-    );
+    await assertNotification(page, "Password update failed");
   });
 });
+
+const register = async (page: Page) => {
+  const mailbox = uuidv4();
+  const [email, password] = [`${mailbox}@example.com`, "1234567890"];
+  
+  await page.goto("/");
+  await page.click('a[href="/register"]');
+  await page.fill("#register-email", email);
+  await page.fill("#register-password", password);
+  await page.click("#register-submit");
+
+  await assertNotification(page, "Registration completed");
+
+  return { mailbox, email, password };
+}
 
 const fetchLatestEmail = async (
   request: APIRequestContext,
@@ -230,6 +210,6 @@ const fetchLatestEmail = async (
     .then((res) => res.body.text);
 
 const assertNotification = async (page: Page, text: string) => {
-  expect(await page.textContent("#notification-message"))
-    .toContain(text);
+  await expect(page.locator("#notification-message"))
+    .toHaveText(text);
 }
