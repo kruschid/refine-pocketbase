@@ -17,7 +17,17 @@ pb.collection("_superusers").authWithPassword(EMAIL, PASSWORD);
 test.describe.configure({ mode: 'serial' });
 
 test.describe("auth provider", () => {
-  test("register happy path", async ()=>{});
+  test("register happy path", async ({ page })=> {
+    const [email, password] = [`${uuidv4()}@example.com`, "1234567890"];
+    
+    await page.goto("/");
+    await page.click('a[href="/register"]');
+    await page.fill("#register-email", email);
+    await page.fill("#register-password", password);
+    await page.click("#register-submit");
+
+    await assertNotification(page, "Registration completed");
+  });
 
   test("register with validation happy path", async ()=>{});
   
