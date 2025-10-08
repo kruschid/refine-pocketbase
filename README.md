@@ -206,84 +206,136 @@ login({
 
 ### Passwordless Auth with OTP
 
-For passwordless authentication, you can omit the password when using the login mutation function:
+For [passwordless authentication](https://pocketbase.io/docs/authentication/#authenticate-with-otp) using a one-time password (OTP), the process consists of two steps.
+
+In the first step, an OTP needs to be requested. To do this, make a `login` call without providing a password. This will send the OTP to the user via email. Currently, this only works if the user is already registered.
+
+After that, the user needs to enter the OTP received in the email. This OTP must then be passed to the `otpHandle.resolve` method within the same session. Note that refreshing the page or navigating to another page will reset the state, requiring the process to be restarted from the beginning.
 
 ```ts
-const { mutate: login } = useLogin<LoginWithPassword>();
+import { type LoginArgs, useOtp } from "refine-pocketbase";
 
-login({ email: "user@example.com" });
-```
+const { mutate: login } = useLogin<LoginArgs>();
+const otpHandler = useOtp();
 
-For this to work correctly, you need to configure PocketBase to send out one-time passwords.
-
-You must also define `loginOtpRedirectTo` in `authOptions`, pointing to a route that renders a form for the OTP input:
-
-```ts
-const authOptions: AuthOptions = {
-  loginOtpRedirectTo: "/otp",
-  // other options
-};
-
-<Refine authProvider={authProvider(pb, authOptions)}>
-  ...
-</Refine>
-```
-
-The route specified in `loginOtpRedirectTo` will be concatenated with a `?otpId=...` query parameter that carries the value required for the subsequent authentication step:
-
-```ts
-const { mutate: login } = useLogin<LoginWithOtp>();
-
+// 1. login without password requests an otp
 login({
-  otp,   // the code entered by the user who received the OTP via email
-  otpId, // query param
+  email: "user@example.com",
+  otpHandler,
 });
+
+// 2. OTP request needs to be resolved in the same session 
+otpHandler.resolve("your-otp");
 ```
+
+A full example is available in [`demo/src/pages/LoginPage.tsx`](demo/src/pages/LoginPage.tsx).
+
+> [!NOTE]
+> To enable OTP functionality, configure PocketBase to send one-time passwords.
 
 ### MFA with Password and OTP
 
-For MFA to work correctly, you need to configure PocketBase accordingly (including the SMTP server for the one-time password). After that, when you use the login mutation function, the user will automatically be redirected to the OTP input form.
+MFA with a password and OTP is similar to passwordless authentication. The only difference is that MFA requires a password. See the previous section for more details.
 
 ```ts
-const { mutate: login } = useLogin<LoginWithPassword>();
+// 1. requests an otp
+login({
+  email: "user@example.com",
+  password: "1234567890", // 
+  otpHandler,
+});
 
-login({ email: "user@example.com", password: "1234567890" });
+// 2. enter otp 
+otpHandler.resolve("your-otp");
 ```
 
-For this to work correctly, `authOptions` must define `loginOtpRedirectTo`, which should point to a route that renders a form for the OTP input.
+A full example is available in [`demo/src/pages/LoginPage.tsx`](demo/src/pages/LoginPage.tsx).
 
-```ts
-const authOptions: AuthOptions = {
-  loginOtpRedirectTo: "/otp",
-  // other options
-};
+> [!NOTE]
+> To enable MFA functionality, configure PocketBase to send one-time passwords and enable multi-factor authentication.
 
-<Refine authProvider={authProvider(pb, authOptions)}>
-  ...
-</Refine>
-```
+### Translations
 
-The route specified in `loginOtpRedirectTo` will be concatenated with a `?mfaId=...&otpId=...` search query that carries the required parameters for the subsequent authentication step:
+If you want to use translation, pass the `translate` function returned by [`useTranslate`](https://refine.dev/docs/guides-concepts/general-concepts/#hooks-4) to the corresponding adapter calls (`login` in this case).
 
-```ts
-const { mutate: login } = useLogin<LoginWithOtp>();
+``` ts
+const { mutate: login } = useLogin<LoginArgs>();
+const translate = useTranslate();
 
 login({
-  otp,   // the code entered by the user who received the OTP via email
-  otpId, // query param
-  mfaId, // query param
+  email,
+  password,
+  translate, // <~ pass on the translate function here
 });
 ```
 
-### Login with user name
+Please expand the following section to view the corresponding translation keys for your custom translation texts.
 
+<details>
+  <summary>Register</summary>
+
+  | `key`                                                  | `defaultMessage`                                                              | `type`    |
+  | ------------------------------------------------------ | ----------------------------------------------------------------------------- | --------- |
+  | `authProvider.register.requestVerificationMessage`     | Account verification                                                          | `success` |
+  | `authProvider.register.requestVerificationDescription` | Please verify your account by clicking the link we sent to your email address | `success` |
+  | `authProvider.register.completedMessage`               | Registration completed                                                        | `success` |
+  | `authProvider.register.completedDescription`           | Please sign in using your credentials                                         | `success` |
+  | `authProvider.register.errorName`                      | Registration failed                                                           | `error`   |
+  | `authProvider.register.errorMessage`                   | Something went wrong while creating your account. Please try again.           | `error`   |
+</details>
+
+<details>
+  <summary>Password Forgot</summary>
+
+  | `key`                                            | `defaultMessage`                                                                                  | `type`    |
+  | ------------------------------------------------ | ------------------------------------------------------------------------------------------------- | --------- |
+  | `authProvider.forgotPassword.successMessage`     | Password reset link sent                                                                          | `success` |
+  | `authProvider.forgotPassword.successDescription` | Check your email for instructions to reset your password.                                         | `success` |
+  | `authProvider.forgotPassword.errorMessage`       | Password reset email not sent                                                                     | `error`   |
+  | `authProvider.forgotPassword.errorDescription`   | Something went wrong while sending the reset link. Please check your email address and try again. | `error`   |
+</details>
+
+<details>
+  <summary>Login</summary>
+
+  | `key`                                        | `defaultMessage`                                                                 | `type`    |
+  | -------------------------------------------- | -------------------------------------------------------------------------------- | --------- |
+  | `authProvider.login.successMessage`          | Login successful                                                                 | `success` |
+  | `authProvider.login.successDescription`      | You're now signed in and ready to go.                                            | `success` |
+  | `authProvider.login.errorName`               | Something went wrong                                                             | `error`   |
+  | `authProvider.login.errorMessage`            | We couldn’t complete your request. Please refresh or try again later.            | `error`   |
+  | `authProvider.login.unsupportedLoginName`    | Unsupported login                                                                | `error`   |
+  | `authProvider.login.unsupportedLoginMessage` | This authentication method isn’t available. Try another way to sign in.          | `error`   |
+  | `authProvider.login.otpCanceled`             | Verification canceled                                                            | `error`   |
+  | `authProvider.login.otpCanceledMessage`      | You stopped entering the code. Try again when you’re ready.                      | `error`   |
+  | `authProvider.login.otpInvalid`              | Invalid verification code                                                        | `error`   |
+  | `authProvider.login.otpInvalidMessage`       | The code you entered is invalid or has expired. Request a new one and try again. | `error`   |
+  | `authProvider.login.mfaError`                | Verification failed                                                              | `error`   |
+  | `authProvider.login.mfaErrorMessage`         | Multi-factor authentication was not completed successfully. Please try again.    | `error`   |
+  | `authProvider.login.credentialsError`        | Invalid credentials                                                              | `error`   |
+  | `authProvider.login.credentialsErrorMessage` | The email or password you entered is incorrect. Please try again.                | `error`   |
+</details>
+
+<details>
+  <summary>Update Password</summary>
+
+  | `key`                                            | `defaultMessage`                                                           | `type`    |
+  | ------------------------------------------------ | -------------------------------------------------------------------------- | --------- |
+  | `authProvider.updatePassword.successMessage`     | Password updated                                                           | `success` |
+  | `authProvider.updatePassword.successDescription` | Your password has been changed successfully.                               | `success` |
+  | `authProvider.updatePassword.errorMessage`       | Password update failed                                                     | `error`   |
+  | `authProvider.updatePassword.errorDescription`   | Something went wrong while updating your password. Please try again later. | `error`   |
+</details>
 
 ## Features
 
 - [x] auth provider
   - [x] register
+  - [x] register & verify
   - [x] login with password
   - [x] login with provider
+  - [x] login with OTP (passwordless)
+  - [x] login with MFA (password & OTP)
   - [x] forgot password
   - [x] update password
 - [x] data provider
@@ -297,7 +349,7 @@ login({
   - [x] unsubscribe
 - [ ] audit log provider
 
-## Tasks: PRs Welcome!
+## Roadmap: PRs Welcome!
 
 - [ ] `auditLogProvider` implementation
 - [ ] happy path test specs
@@ -309,7 +361,7 @@ login({
   - [x] `register`
   - [x] `forgotPassword`
   - [x] `updatePassword`
-  - [ ] `login`
+  - [x] `login`
 - [ ] test specs for `dataProvider` error conditions
   - [ ] `getList`
   - [ ] `create`
