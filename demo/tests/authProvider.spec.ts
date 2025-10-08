@@ -6,17 +6,17 @@ const INBUCKET_URL = "http://127.0.0.1:9000";
 const EXISTING_EMAIL = "test-user@example.com";
 
 const PB_URL = "http://127.0.0.1:8090";
-const EMAIL = `test@example.com`;
-const PASSWORD = "1234567890";
+const ADMIN_EMAIL = `test@example.com`;
+const ADMIN_PASSWORD = "1234567890";
 
 const pb = new PocketBase(PB_URL);
 
-pb.collection("_superusers").authWithPassword(EMAIL, PASSWORD);
-
-// some tests depend on global configurations that may conflict with other tests when run in parallel 
-test.describe.configure({ mode: 'serial' });
-
 test.describe("auth provider", () => {
+  test.beforeAll(async ()=> {
+    await pb.collection("_superusers")
+      .authWithPassword(ADMIN_EMAIL, ADMIN_PASSWORD);
+  });
+
   test("register happy path", async ({ page })=> {
     await register(page);
   });

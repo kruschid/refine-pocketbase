@@ -5,6 +5,8 @@ import { v4 as uuidv4 } from "uuid";
 const PB_URL = "http://127.0.0.1:8090";
 const EMAIL = `test-user@example.com`;
 const PASSWORD = "1234567890";
+const ADMIN_EMAIL = `test@example.com`;
+const ADMIN_PASSWORD = "1234567890";
 
 const pb = new PocketBase(PB_URL);
 
@@ -16,6 +18,17 @@ const posts = [
 test.describe.configure({ mode: "serial" });
 
 test.describe("data and live provider", () => {
+  test.beforeAll(async ()=> {
+    await pb.collection("_superusers")
+      .authWithPassword(ADMIN_EMAIL, ADMIN_PASSWORD);
+
+    await pb.collections.update("users", {
+      passwordAuth: { enabled: true },
+      otp: { enabled: false },
+      mfa: { enabled: false },
+    });
+  });
+
   test.beforeEach(async ({ page }) => {
     await pb
       .collection("posts")
