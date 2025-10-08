@@ -36,7 +36,7 @@
     "build": "tsc && refine build",
     "preview": "refine start",
     "refine": "refine",
-    "test": "playwright test --ui"
+    "test": "playwright test --ui --workers=1"
   },
   "browserslist": {
     "production": [

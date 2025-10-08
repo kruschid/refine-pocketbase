@@ -41,7 +41,7 @@ jobs:
         docker compose up -d
         npm ci
         npx playwright install --with-deps
-        npx playwright test
+        npx playwright test --workers=1
   
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
