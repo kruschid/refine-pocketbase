@@ -23,6 +23,8 @@ export type LoginArgs =
   | LoginWithProvider
   | LoginWithEmail;
 
+const OTP_HOOK_ERROR = "otpHook must be defined for passwordless login";
+
 export const login = (
   pb: PocketBase,
   options: RequiredAuthOptions,
@@ -30,14 +32,10 @@ export const login = (
   translate,
   ...loginArgs
 }: LoginArgs): Promise<AuthActionResponse> => {
-  const successNotification ={
-    message: translate 
-      ? translate("authProvider.login.successMessage", "Login successful")
-      : "Login successful",
-    description: translate
-      ? translate("authProvider.login.successDescription", "You're now signed in and ready to go.")
-      : "You're now signed in and ready to go.",
-  };
+  const successNotification = translate ? {
+    message: translate("authProvider.login.successMessage", "Login successful"),
+    description: translate("authProvider.login.successDescription", "You're now signed in and ready to go."),
+  } : undefined;
 
   try {    
     if (isLoginWithProvider(loginArgs)) {
@@ -49,41 +47,36 @@ export const login = (
       }
       return loginWithPassword(pb, loginArgs, options, successNotification, translate);
     }
-  } catch {
+  } catch (e: unknown) {
+    if((e as Error)?.message === OTP_HOOK_ERROR) {
+      throw e;
+    }
     return {
       success: false,
-      error: {
-        name: translate
-          ? translate("authProvider.login.errorName", "Something went wrong")
-          : "Something went wrong",
-        message: translate
-          ? translate(
-              "authProvider.login.errorMessage",
-              "We couldn’t complete your request. Please refresh or try again later."
-            )
-          : "We couldn’t complete your request. Please refresh or try again later.",
+      error: translate ? {
         statusCode: 401,
-      },
+        name: translate("authProvider.login.errorName", "Something went wrong"),
+        message: translate(
+          "authProvider.login.errorMessage",
+          "We couldn’t complete your request. Please refresh or try again later."
+        ),
+      }: undefined,
     };
   }
 
   return {
     success: false,
-    error: {
-      name: translate
-        ? translate(
-            "authProvider.login.unsupportedLoginName",
-            "Unsupported login"
-          )
-        : "Unsupported login",
-      message: translate
-        ? translate(
-            "authProvider.login.unsupportedLoginMessage",
-            "This authentication method isn’t available. Try another way to sign in."
-          )
-        : "This authentication method isn’t available. Try another way to sign in.",
+    error: translate ? {
       statusCode: 400,
-    },
+      name: translate(
+        "authProvider.login.unsupportedLoginName",
+        "Unsupported login"
+      ),
+      message: translate(
+        "authProvider.login.unsupportedLoginMessage",
+        "This authentication method isn’t available. Try another way to sign in."
+      ),
+    } : undefined,
   };
 };
 
@@ -134,7 +127,7 @@ const loginWithOtp = async (
     .requestOTP(loginArgs.email, loginArgs.otpOptions);
 
   if(!loginArgs.otpHandler) {
-    throw Error("otpHook must be defined for passwordless login");
+    throw Error(OTP_HOOK_ERROR);
   }
 
   let otp: string;
@@ -143,14 +136,13 @@ const loginWithOtp = async (
   } catch {
     return {
       success: false,
-      error: {
-        name: translate
-          ? translate("authProvider.login.otpCanceled", "Verification canceled")
-          : "Verification canceled",
-        message: translate
-          ? translate("authProvider.login.otpCanceledMessage", "You stopped entering the code. Try again when you’re ready.")
-          : "You stopped entering the code. Try again when you’re ready.",
-      }
+      error: translate ? {
+        name: translate("authProvider.login.otpCanceled", "Verification canceled"),
+        message: translate(
+          "authProvider.login.otpCanceledMessage",
+          "You stopped entering the code. Try again when you’re ready."
+        ),
+      } : undefined,
     }
   }
 
@@ -165,8 +157,16 @@ const loginWithOtp = async (
       redirectTo: options.loginRedirectTo,
     };
   } else {
-    options.debug?.("invalid otp")
-    throw Error("invalid otp");
+    return {
+      success: false,
+      error: translate ? {
+        name: translate("authProvider.login.otpInvalid", "Invalid verification code"),
+        message: translate(
+          "authProvider.login.otpInvalidMessage",
+          "The code you entered is invalid or has expired. Request a new one and try again."
+        ),
+      } : undefined,
+    }
   }
 }
 
@@ -198,8 +198,7 @@ const loginWithPassword = async (
       throw new Error("unknown error");
     }
     if( !loginArgs.otpHandler ) {
-      options.debug?.("otpHook must be defined")
-      throw Error("otpHook must be defined");
+      throw Error(OTP_HOOK_ERROR);
     }
 
     const mfaId: string | undefined = err.response.mfaId;
@@ -215,14 +214,13 @@ const loginWithPassword = async (
       } catch {
         return {
           success: false,
-          error: {
-            name: translate
-              ? translate("authProvider.login.otpCanceled", "Verification canceled")
-              : "Verification canceled",
-            message: translate
-              ? translate("authProvider.login.otpCanceledMessage", "You stopped entering the code. Try again when you’re ready.")
-              : "You stopped entering the code. Try again when you’re ready.",
-          }
+          error: translate ? {
+            name: translate("authProvider.login.otpCanceled", "Verification canceled"),
+            message: translate(
+              "authProvider.login.otpCanceledMessage",
+              "You stopped entering the code. Try again when you’re ready."
+            ),
+          } : undefined,
         }
       }
 
@@ -240,14 +238,35 @@ const loginWithPassword = async (
           redirectTo: options.loginRedirectTo,
         };
       } else {
-        options.debug?.("mfa failed")
-        throw Error("mfa failed");
+        return {
+          success: false,
+          error: translate ? {
+            statusCode: 400,
+            name: translate(
+              "authProvider.login.mfaError",
+              "Verification failed"
+            ),
+            message: translate(
+              "authProvider.login.mfaErrorMessage",
+              "Multi-factor authentication was not completed successfully. Please try again."
+            ),
+          } : undefined
+        }
       }
     } else {
-      options.debug?.("invalid credentials")
-      throw Error("invalid credentials");
+      return {
+        success: false,
+        error: translate ? {
+          statusCode: 400,
+          name: translate("authProvider.login.credentialsError", "Invalid credentials"),
+          message: translate(
+            "authProvider.login.credentialsErrorMessage",
+            "The email or password you entered is incorrect. Please try again."
+          ),
+        } : undefined
+      }
     }
   }
-  throw Error("unknown error");
+  throw Error("something went wrong");
 }
 
