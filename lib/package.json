@@ -22,17 +22,17 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@parcel/packager-ts": "^2.15.4",
-    "@parcel/transformer-typescript-types": "^2.15.4",
-    "@refinedev/core": "^5.0.1",
-    "@types/react": "^19.1.16",
+    "@parcel/packager-ts": "^2.16.0",
+    "@parcel/transformer-typescript-types": "^2.16.0",
+    "@refinedev/core": "^5.0.4",
+    "@types/react": "^19.2.2",
     "@types/tape": "^5.8.1",
-    "parcel": "^2.15.4",
+    "parcel": "^2.16.0",
     "pocketbase": "^0.26.2",
-    "react": "^19.1.1",
+    "react": "^19.2.0",
     "tape": "^5.9.0",
     "tsimp": "^2.0.12",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {
     "@refinedev/core": ">=5.0.0",
