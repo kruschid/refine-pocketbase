@@ -12,13 +12,14 @@
     "@refinedev/react-hook-form": "^5.0.0",
     "@refinedev/react-router": "^2.0.0",
     "@refinedev/react-table": "^6.0.0",
+    "dayjs": "^1.11.18",
     "pocketbase": "^0.26.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-live": "^4.1.8",
     "react-router": "^7.9.1",
     "react-router-dom": "^7.9.1",
-    "refine-pocketbase": "file:../lib",
+    "refine-pocketbase": "workspace:*",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

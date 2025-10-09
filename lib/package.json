@@ -4,9 +4,8 @@
   "version": "0.0.0",
   "author": "Denis Kruschinski <4989565+kruschid@users.noreply.github.com>",
   "source": "src/index.ts",
-  "module": "build/index.mjs",
-  "main": "build/index.cjs",
-  "types": "build/index.d.ts",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "repository": {
     "type": "git",
@@ -15,22 +14,20 @@
   "homepage": "https://github.com/kruschid/refine-pocketbase",
   "scripts": {
     "test": "node --import=tsimp/import src/test.ts",
-    "build": "npm run test && parcel build"
+    "build": "npm run test && tsdown"
   },
   "engines": {
     "node": ">=20.0.0"
   },
   "license": "MIT",
   "devDependencies": {
-    "@parcel/packager-ts": "^2.16.0",
-    "@parcel/transformer-typescript-types": "^2.16.0",
     "@refinedev/core": "^5.0.4",
     "@types/react": "^19.2.2",
     "@types/tape": "^5.8.1",
-    "parcel": "^2.16.0",
     "pocketbase": "^0.26.2",
     "react": "^19.2.0",
     "tape": "^5.9.0",
+    "tsdown": "^0.15.6",
     "tsimp": "^2.0.12",
     "typescript": "^5.9.3"
   },
@@ -53,7 +50,7 @@
     "url": "https://www.buymeacoffee.com/kruschid"
   },
   "files": [
-    "build",
+    "dist",
     "src",
     "README.md",
     "LICENSE"
