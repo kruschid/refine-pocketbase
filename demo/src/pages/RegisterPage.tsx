@@ -14,25 +14,16 @@ export const RegisterPage = () => {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     register({ email, password, translate });
-  }
+  };
 
   return (
     <div>
       <h1>Sign up for your account</h1>
       <hr />
       <form onSubmit={handleRegister}>
-        <label htmlFor="register-email">
-          Email
-        </label>
-        <input
-          id="register-email"
-          name="email"
-          type="email"
-          required
-        />
-        <label htmlFor="register-password">
-          Password
-        </label>
+        <label htmlFor="register-email">Email</label>
+        <input id="register-email" name="email" type="email" required />
+        <label htmlFor="register-password">Password</label>
         <input
           id="register-password"
           name="password"
@@ -48,8 +39,10 @@ export const RegisterPage = () => {
       </form>
       <div>
         Have an account?{" "}
-        <Link to="/login" id="register-submit">Sign in</Link>
+        <Link to="/login" id="register-submit">
+          Sign in
+        </Link>
       </div>
-    </div >
+    </div>
   );
 };

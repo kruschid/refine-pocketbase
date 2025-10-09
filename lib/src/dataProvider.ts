@@ -1,4 +1,5 @@
-import {
+/** biome-ignore-all lint/suspicious/noExplicitAny: this is fine */
+import type {
   CreateResponse,
   CustomResponse,
   DataProvider,
@@ -6,18 +7,23 @@ import {
   GetOneResponse,
   UpdateResponse,
 } from "@refinedev/core";
-import PocketBase, { RecordListOptions, SendOptions } from "pocketbase";
-import { isClientResponseError, toHttpError } from "./utils";
+import type PocketBase from "pocketbase";
+import type { RecordListOptions, SendOptions } from "pocketbase";
 import { transformFilter } from "./filters";
+import { isClientResponseError, toHttpError } from "./utils";
 
 export const dataProvider = (
-  pb: PocketBase
+  pb: PocketBase,
 ): Omit<
   Required<DataProvider>,
   "createMany" | "updateMany" | "deleteMany" | "getMany"
 > => ({
   getList: async ({ resource, pagination, filters, sorters, meta }) => {
-    const { currentPage = 1, pageSize = 10, mode = "server" } = pagination ?? {};
+    const {
+      currentPage = 1,
+      pageSize = 10,
+      mode = "server",
+    } = pagination ?? {};
 
     const sort = sorters
       ?.map((s) => `${s.order === "desc" ? "-" : ""}${s.field}`)
@@ -38,7 +44,7 @@ export const dataProvider = (
         const { items, totalItems } = await collection.getList(
           currentPage,
           pageSize,
-          options
+          options,
         );
 
         return {

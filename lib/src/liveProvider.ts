@@ -1,5 +1,6 @@
-import { LiveEvent, LiveProvider } from "@refinedev/core";
-import PocketBase, { UnsubscribeFunc } from "pocketbase";
+import type { LiveEvent, LiveProvider } from "@refinedev/core";
+import type PocketBase from "pocketbase";
+import type { UnsubscribeFunc } from "pocketbase";
 
 export const liveProvider = (pb: PocketBase): LiveProvider => ({
   subscribe: ({ channel, params, callback }) => {

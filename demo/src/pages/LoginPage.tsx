@@ -7,15 +7,13 @@ export const LoginPage = () => {
   const { mutate: login } = useLogin<LoginArgs>();
   const otpHandler = useOtp();
   const translate = useTranslate();
-  
+
   const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
 
-    if(otpHandler.isPending) {
-      otpHandler.resolve(
-        formData.get("otp") as string,
-      );
+    if (otpHandler.isPending) {
+      otpHandler.resolve(formData.get("otp") as string);
     } else {
       login({
         email: formData.get("email") as string,
@@ -24,7 +22,7 @@ export const LoginPage = () => {
         translate,
       });
     }
-  }
+  };
 
   return (
     <div>
@@ -32,40 +30,17 @@ export const LoginPage = () => {
       <hr />
       <form onSubmit={handleLogin}>
         <label htmlFor="login-email">Email</label>
-        <input
-          id="login-email"
-          name="email"
-          type="email"
-        />
+        <input id="login-email" name="email" type="email" />
         <label htmlFor="register-password">Password</label>
-        <input
-          id="login-password"
-          type="password"
-          name="password"
-          size={20}
-        />
+        <input id="login-password" type="password" name="password" size={20} />
         {otpHandler.isPending && (
           <>
             <label htmlFor="login-otp">OTP</label>
-            <input
-              id="login-otp"
-              type="text"
-              name="otp"
-  
-              size={20}
-            />
-            <input
-              onClick={otpHandler.reject}
-              type="button"
-              value="cancel"
-            />
+            <input id="login-otp" type="text" name="otp" size={20} />
+            <input onClick={otpHandler.reject} type="button" value="cancel" />
           </>
         )}
-        <input
-          id="login-submit"
-          type="submit"
-          value="Sign in"
-        />
+        <input id="login-submit" type="submit" value="Sign in" />
         <br />
         <Link to="/forgot-password">Forgot password?</Link>
       </form>

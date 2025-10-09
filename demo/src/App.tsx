@@ -1,11 +1,32 @@
 /** biome-ignore-all lint/correctness/useUniqueElementIds: using ids for playwrigt tests */
-import { Authenticated, ErrorComponent, type NotificationProvider, type OpenNotificationParams, Refine, useIsAuthenticated, useLogout } from "@refinedev/core";
-import { HeadlessCreateInferencer, HeadlessEditInferencer, HeadlessListInferencer, HeadlessShowInferencer } from "@refinedev/inferencer/headless";
-import routerBindings, { DocumentTitleHandler, NavigateToResource } from "@refinedev/react-router";
+import {
+  Authenticated,
+  ErrorComponent,
+  type NotificationProvider,
+  type OpenNotificationParams,
+  Refine,
+  useIsAuthenticated,
+  useLogout,
+} from "@refinedev/core";
+import {
+  HeadlessCreateInferencer,
+  HeadlessEditInferencer,
+  HeadlessListInferencer,
+  HeadlessShowInferencer,
+} from "@refinedev/inferencer/headless";
+import routerBindings, {
+  DocumentTitleHandler,
+  NavigateToResource,
+} from "@refinedev/react-router";
 import PocketBase from "pocketbase";
 import { useState } from "react";
 import { BrowserRouter, Outlet, Route, Routes } from "react-router";
-import { type AuthOptions, authProvider, dataProvider, liveProvider } from "refine-pocketbase";
+import {
+  type AuthOptions,
+  authProvider,
+  dataProvider,
+  liveProvider,
+} from "refine-pocketbase";
 import { CustomPage } from "./pages/CustomPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { LoginPage } from "./pages/LoginPage";
@@ -20,20 +41,20 @@ const authOptions: AuthOptions = {
   loginRedirectTo: "/posts",
   updatePasswordRedirectTo: "/login",
   debug: console.log,
-}
+};
 
 const providers = {
   dataProvider: dataProvider(pb),
   liveProvider: liveProvider(pb),
   authProvider: authProvider(pb, authOptions),
-}
+};
 
 export const App = () => {
   const [notification, setNotification] = useState<OpenNotificationParams>();
   const notificationProvider: NotificationProvider = {
     open: setNotification,
     close: () => setNotification(undefined),
-  }
+  };
 
   return (
     <BrowserRouter>
@@ -66,30 +87,41 @@ export const App = () => {
       >
         {notification && (
           <p>
-            <strong id="notification-message">{notification.message}</strong><br />
-            <span id="notification-description">{notification.description}</span>
+            <strong id="notification-message">{notification.message}</strong>
+            <br />
+            <span id="notification-description">
+              {notification.description}
+            </span>
           </p>
         )}
         <LogoutButton />
         <Routes>
-          <Route element={
-            <Authenticated
-              key="authenticated-inner"
-              redirectOnFail="/login"
-            >
-              <Outlet />
-            </Authenticated>
-          }>
-            <Route
-              index
-              element={<NavigateToResource resource="posts" />}
-            />
+          <Route
+            element={
+              <Authenticated key="authenticated-inner" redirectOnFail="/login">
+                <Outlet />
+              </Authenticated>
+            }
+          >
+            <Route index element={<NavigateToResource resource="posts" />} />
             <Route index path="/custom" element={<CustomPage />} />
             <Route path="/posts">
-              <Route index element={<HeadlessListInferencer resource="posts" />} />
-              <Route path="create" element={<HeadlessCreateInferencer resource="posts" />} />
-              <Route path="edit/:id" element={<HeadlessEditInferencer resource="posts" />} />
-              <Route path="show/:id" element={<HeadlessShowInferencer resource="posts" />} />
+              <Route
+                index
+                element={<HeadlessListInferencer resource="posts" />}
+              />
+              <Route
+                path="create"
+                element={<HeadlessCreateInferencer resource="posts" />}
+              />
+              <Route
+                path="edit/:id"
+                element={<HeadlessEditInferencer resource="posts" />}
+              />
+              <Route
+                path="show/:id"
+                element={<HeadlessShowInferencer resource="posts" />}
+              />
             </Route>
           </Route>
           <Route path="/register" element={<RegisterPage />} />
@@ -102,7 +134,7 @@ export const App = () => {
       </Refine>
     </BrowserRouter>
   );
-}
+};
 
 const LogoutButton = () => {
   const { data: isAuthenticatedData } = useIsAuthenticated();
@@ -117,5 +149,5 @@ const LogoutButton = () => {
         onClick={() => logout()}
       />
     )
-  )
-} 
+  );
+};

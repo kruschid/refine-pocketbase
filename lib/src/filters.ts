@@ -1,4 +1,6 @@
-import {
+/** biome-ignore-all lint/suspicious/noExplicitAny: that's fine  */
+/** biome-ignore-all lint/style/useTemplate: templates are harder to read in some cases */
+import type {
   ConditionalFilter,
   CrudFilter,
   CrudFilters,
@@ -30,7 +32,7 @@ export const serialize = (value: FilterValue) => {
   }
 };
 
-const escapeWildcards = (value: string) => value.replace(/\%/g, "\\%");
+const escapeWildcards = (value: string) => value.replace(/%/g, "\\%");
 
 const defaultExpression = (operator?: string) => (filter: TypedLogicalFilter) =>
   `${filter.field} ${operator} ${serialize(filter.value)}`;
@@ -67,7 +69,7 @@ const logicalOperators: Record<
     return value
       .slice(0, 2)
       .flatMap((val, i) =>
-        val != null ? `${field} ${op[i]} ${serialize(val)}` : []
+        val != null ? `${field} ${op[i]} ${serialize(val)}` : [],
       )
       .join(" && ");
   },
@@ -79,7 +81,7 @@ const logicalOperators: Record<
     return value
       .slice(0, 2)
       .flatMap((val, i) =>
-        val != null ? `${field} ${op[i]} ${serialize(val)}` : []
+        val != null ? `${field} ${op[i]} ${serialize(val)}` : [],
       )
       .join(" || ");
   },
@@ -116,7 +118,7 @@ const getExpression = (filter: TypedLogicalFilter) => {
   const expressionFn = logicalOperators[filter.operator];
   if (!expressionFn) {
     throw Error(
-      `operator "${filter.operator}" is not supported by refine-pocketbase`
+      `operator "${filter.operator}" is not supported by refine-pocketbase`,
     );
   }
   return expressionFn(filter);
@@ -124,15 +126,15 @@ const getExpression = (filter: TypedLogicalFilter) => {
 
 export const transformFilter = (
   filters: CrudFilters,
-  joinOperator: ConditionalFilter["operator"] = "and"
+  joinOperator: ConditionalFilter["operator"] = "and",
 ) =>
   filters
     .map((filter): string | undefined =>
       wrap(
         isConditionalFilter(filter)
           ? transformFilter(filter.value, filter.operator)
-          : getExpression(filter)
-      )
+          : getExpression(filter),
+      ),
     )
     .filter((expression): expression is string => expression != null)
     .join(` ${conditionalOperators[joinOperator]} `);

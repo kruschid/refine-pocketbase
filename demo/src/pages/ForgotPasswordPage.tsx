@@ -13,22 +13,15 @@ export const ForgotPasswordPage = () => {
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     forgotPassword({ email, translate });
-  }
+  };
 
   return (
     <>
-      <h1>
-        Forgot your password?
-      </h1>
+      <h1>Forgot your password?</h1>
       <hr />
       <form onSubmit={handleSubmit}>
-        <label htmlFor="email-input">
-          Email
-        </label>
-        <input
-          id="email-input"
-          name="email"
-        />
+        <label htmlFor="email-input">Email</label>
+        <input id="email-input" name="email" />
         <input
           type="submit"
           disabled={isPending}

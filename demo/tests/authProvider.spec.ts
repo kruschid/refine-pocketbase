@@ -1,4 +1,9 @@
-import { type APIRequestContext, expect, type Page, test } from "@playwright/test";
+import {
+  type APIRequestContext,
+  expect,
+  type Page,
+  test,
+} from "@playwright/test";
 import PocketBase from "pocketbase";
 import { v4 as uuidv4 } from "uuid";
 
@@ -12,17 +17,18 @@ const ADMIN_PASSWORD = "1234567890";
 const pb = new PocketBase(PB_URL);
 
 test.describe("auth provider", () => {
-  test.beforeAll(async ()=> {
-    await pb.collection("_superusers")
+  test.beforeAll(async () => {
+    await pb
+      .collection("_superusers")
       .authWithPassword(ADMIN_EMAIL, ADMIN_PASSWORD);
   });
 
-  test("register happy path", async ({ page })=> {
+  test("register happy path", async ({ page }) => {
     await register(page);
   });
 
-  test("register with validation happy path", async ()=>{});
-  
+  test("register with validation happy path", async () => {});
+
   test("register error", async ({ page }) => {
     await page.goto("/");
     await page.click('a[href="/register"]');
@@ -34,49 +40,49 @@ test.describe("auth provider", () => {
   });
 
   test("login with mfa happy path", async ({ page, request }) => {
-    // activate mfa 
+    // activate mfa
     await pb.collections.update("users", {
       passwordAuth: { enabled: true },
       otp: { enabled: true },
       mfa: { enabled: true },
     });
-  
+
     const { mailbox, email, password } = await register(page);
-    
+
     // login
     await page.waitForURL("**/login**");
     await page.fill("#login-email", email);
-    await page.fill("#login-password", password); 
+    await page.fill("#login-password", password);
     await page.click("#login-submit");
 
     // fetch otp from inbucket
     await page.waitForTimeout(2000); // wait for email delivery
     const token = await fetchLatestEmail(request, mailbox);
-    // fill out otp 
+    // fill out otp
     await page.fill("#login-otp", token);
     await page.click("#login-submit");
     await page.waitForURL("**/posts");
 
     await assertNotification(page, "Login successful");
-  
+
     //  logout
     await page.click("#auth-logout");
     await page.waitForURL("**/login**");
   });
 
   test("login with otp happy path", async ({ page, request }) => {
-    // activate otp 
+    // activate otp
     await pb.collections.update("users", {
       passwordAuth: { enabled: false },
       otp: { enabled: true },
       mfa: { enabled: false },
     });
-    
+
     const email = EXISTING_EMAIL; // only registered users are supported for now
     const mailbox = email.split("@")[0];
 
     await page.goto("/");
-    
+
     // login
     await page.waitForURL("**/login**");
     await page.fill("#login-email", email);
@@ -85,11 +91,11 @@ test.describe("auth provider", () => {
     // fetch otp from inbucket
     await page.waitForTimeout(2000); // wait for email delivery
     const token = await fetchLatestEmail(request, mailbox);
-    // fill out otp 
+    // fill out otp
     await page.fill("#login-otp", token);
     await page.click("#login-submit");
     await page.waitForURL("**/posts");
-  
+
     await assertNotification(page, "Login successful");
 
     //  logout
@@ -103,19 +109,19 @@ test.describe("auth provider", () => {
       otp: { enabled: false },
       mfa: { enabled: false },
     });
-  
+
     const { email, password } = await register(page);
-    
+
     // login
     await page.waitForURL("**/login**");
     await page.fill("#login-email", email);
-    await page.fill("#login-password", password); 
+    await page.fill("#login-password", password);
     await page.click("#login-submit");
 
     await page.waitForURL("**/posts");
 
     await assertNotification(page, "Login successful");
-  
+
     //  logout
     await page.click("#auth-logout");
     await page.waitForURL("**/login*");
@@ -124,7 +130,7 @@ test.describe("auth provider", () => {
   test("login with error", async ({ page }) => {
     await page.goto("/");
     await page.fill("#login-email", `${uuidv4()}@${uuidv4()}.com`);
-    await page.fill("#login-password", "12345"); 
+    await page.fill("#login-password", "12345");
     // submit empty credentials
     await page.click("#login-submit");
     await assertNotification(page, "Invalid credentials");
@@ -136,7 +142,7 @@ test.describe("auth provider", () => {
 
     await page.click('[type="submit"]');
     expect(await page.textContent("#notification-message")).toContain(
-      "Forgot Password Error"
+      "Forgot Password Error",
     );
   });
 
@@ -184,7 +190,7 @@ test.describe("auth provider", () => {
 const register = async (page: Page) => {
   const mailbox = uuidv4();
   const [email, password] = [`${mailbox}@example.com`, "1234567890"];
-  
+
   await page.goto("/");
   await page.click('a[href="/register"]');
   await page.fill("#register-email", email);
@@ -194,7 +200,7 @@ const register = async (page: Page) => {
   await assertNotification(page, "Registration completed");
 
   return { mailbox, email, password };
-}
+};
 
 const fetchLatestEmail = async (
   request: APIRequestContext,
@@ -204,12 +210,13 @@ const fetchLatestEmail = async (
     .get(`${INBUCKET_URL}/api/v1/mailbox/${mailbox}`)
     .then((res) => res.json())
     .then((emails) =>
-      request.get(`${INBUCKET_URL}/api/v1/mailbox/${mailbox}/${emails.at(-1).id}`)
+      request.get(
+        `${INBUCKET_URL}/api/v1/mailbox/${mailbox}/${emails.at(-1).id}`,
+      ),
     )
     .then((res) => res.json())
     .then((res) => res.body.text);
 
 const assertNotification = async (page: Page, text: string) => {
-  await expect(page.locator("#notification-message"))
-    .toHaveText(text);
-}
+  await expect(page.locator("#notification-message")).toHaveText(text);
+};

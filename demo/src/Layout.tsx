@@ -1,5 +1,5 @@
 import { useBreadcrumb, useMenu } from "@refinedev/core";
-import { PropsWithChildren } from "react";
+import type { PropsWithChildren } from "react";
 import { Link, NavLink } from "react-router-dom";
 
 export const Layout: React.FC<PropsWithChildren> = ({ children }) => {

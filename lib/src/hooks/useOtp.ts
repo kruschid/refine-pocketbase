@@ -11,13 +11,13 @@ export const useOtp = () => {
   useEffect(() => {
     return () => {
       otpPromise?.reject();
-    }
-  },[otpPromise]);
+    };
+  }, [otpPromise]);
 
   const request = useCallback(() => {
     return new Promise<string>((resolve, reject) => {
-      setOtpPromise({resolve, reject})
-    })
+      setOtpPromise({ resolve, reject });
+    });
   }, []);
 
   const reject = useCallback(() => {
@@ -25,10 +25,13 @@ export const useOtp = () => {
     setOtpPromise(undefined);
   }, [otpPromise]);
 
-  const resolve = useCallback((otp: string) => {
-    otpPromise?.resolve(otp);
-    setOtpPromise(undefined);
-  }, [otpPromise]);
+  const resolve = useCallback(
+    (otp: string) => {
+      otpPromise?.resolve(otp);
+      setOtpPromise(undefined);
+    },
+    [otpPromise],
+  );
 
   const isPending = !!otpPromise;
 
@@ -37,5 +40,5 @@ export const useOtp = () => {
     request,
     reject,
     resolve,
-  }
-}
+  };
+};

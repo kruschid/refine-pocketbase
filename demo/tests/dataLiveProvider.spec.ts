@@ -18,8 +18,9 @@ const posts = [
 test.describe.configure({ mode: "serial" });
 
 test.describe("data and live provider", () => {
-  test.beforeAll(async ()=> {
-    await pb.collection("_superusers")
+  test.beforeAll(async () => {
+    await pb
+      .collection("_superusers")
       .authWithPassword(ADMIN_EMAIL, ADMIN_PASSWORD);
 
     await pb.collections.update("users", {
@@ -34,12 +35,14 @@ test.describe("data and live provider", () => {
       .collection("posts")
       .getFullList()
       .then((posts) =>
-        Promise.all(posts.map((post) => pb.collection("posts").delete(post.id)))
+        Promise.all(
+          posts.map((post) => pb.collection("posts").delete(post.id)),
+        ),
       );
     await Promise.all(
       posts.map((post) =>
-        pb.collection("posts").create(post, { requestKey: null })
-      )
+        pb.collection("posts").create(post, { requestKey: null }),
+      ),
     );
 
     await page.goto("/login");
@@ -66,14 +69,14 @@ test.describe("data and live provider", () => {
 
     // filter
     await page.goto(
-      "/posts?filters[0][field]=title&filters[0][operator]=contains&filters[0][value]=first"
+      "/posts?filters[0][field]=title&filters[0][operator]=contains&filters[0][value]=first",
     );
     await expect(page.locator("tbody > tr")).toHaveCount(1);
   });
 
   test("get", async ({ page }) => {
     await page.click(
-      "tbody tr:nth-child(1) > td:nth-child(6) button:nth-child(1)"
+      "tbody tr:nth-child(1) > td:nth-child(6) button:nth-child(1)",
     );
     await page.waitForURL("**/posts/show/**");
   });
@@ -93,7 +96,7 @@ test.describe("data and live provider", () => {
 
     await page.waitForURL("**/posts");
     await expect(
-      page.locator("tbody tr:last-child td:nth-child(4)")
+      page.locator("tbody tr:last-child td:nth-child(4)"),
     ).toHaveText(title);
 
     await page.click("tbody tr:last-child td:last-child button:last-child");
@@ -104,17 +107,17 @@ test.describe("data and live provider", () => {
     await page.click("input[type=submit]");
     await page.waitForURL("**/posts");
     await expect(
-      page.locator("tbody tr:last-child td:nth-child(4)")
+      page.locator("tbody tr:last-child td:nth-child(4)"),
     ).toHaveText(updatedTitle);
   });
 
   test("pagination", async ({ page }) => {
     for (const i of [1, 2]) {
       await page.goto(
-        `/posts?pageSize=1&current=${i}&sorters[0][field]=title&sorters[0][order]=asc`
+        `/posts?pageSize=1&current=${i}&sorters[0][field]=title&sorters[0][order]=asc`,
       );
       await expect(
-        page.locator("tbody > tr:first-child> :nth-child(4)")
+        page.locator("tbody > tr:first-child> :nth-child(4)"),
       ).toHaveText(posts[i - 1].title);
     }
   });
@@ -128,7 +131,7 @@ test.describe("data and live provider", () => {
     await expect(page.locator("tbody > tr")).toHaveCount(3);
 
     await expect(
-      page.locator("tbody > tr:first-child > td:nth-child(4)")
+      page.locator("tbody > tr:first-child > td:nth-child(4)"),
     ).toHaveText(posts[0].title);
 
     await pb
@@ -136,7 +139,7 @@ test.describe("data and live provider", () => {
       .update(posts[0].id, { title: "updated title" });
 
     await expect(
-      page.locator("tbody > tr:last-child > td:nth-child(4)")
+      page.locator("tbody > tr:last-child > td:nth-child(4)"),
     ).toHaveText("updated title");
   });
 
@@ -147,8 +150,8 @@ test.describe("data and live provider", () => {
     await expect(page.getByText("Title: Custom Page Data")).toHaveCount(1);
     await expect(
       page.getByText(
-        "Description: This is some dummy content for the CustomPage in the demo application."
-      )
+        "Description: This is some dummy content for the CustomPage in the demo application.",
+      ),
     ).toHaveCount(1);
   });
 });

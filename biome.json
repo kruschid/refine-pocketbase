@@ -10,8 +10,10 @@
     "includes": [
       "demo/**",
       "lib/**",
+      "!demo/pocketbase",
       "!**/node_modues",
-      "!**/dist"
+      "!**/dist",
+      "!**/.tsimp"
     ]
   },
   "formatter": {

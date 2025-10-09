@@ -17,10 +17,8 @@ export const isClientResponseError = (x: unknown): x is ClientResponseError =>
 export const toHttpError = (e: ClientResponseError): HttpError => ({
   message: e.message,
   statusCode: e.status,
-  errors: Object
-    .keys(e.response.data)
-    .reduce<ValidationErrors>((acc, next) => {
-      acc[next] = e.response.data[next].message;
-      return acc;
-    }, {}),
+  errors: Object.keys(e.response.data).reduce<ValidationErrors>((acc, next) => {
+    acc[next] = e.response.data[next].message;
+    return acc;
+  }, {}),
 });

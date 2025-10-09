@@ -1,5 +1,5 @@
-import { AuditLogProvider } from "@refinedev/core";
-import PocketBase from "pocketbase";
+import type { AuditLogProvider } from "@refinedev/core";
+import type PocketBase from "pocketbase";
 
 export interface AutitLogOptions {
   collection?: string;
@@ -11,7 +11,7 @@ const defaultOptions: Required<AutitLogOptions> = {
 
 export const auditLogProvider = (
   pb: PocketBase,
-  auditLogsOptions: AutitLogOptions
+  auditLogsOptions: AutitLogOptions,
 ): AuditLogProvider => {
   const options = {
     ...defaultOptions,
@@ -40,7 +40,7 @@ export const auditLogProvider = (
         },
         {
           requestKey: meta?.requestKey ?? null,
-        }
+        },
       );
 
       return { success: true };
@@ -66,6 +66,6 @@ export const auditLogProvider = (
         }),
       });
     },
-    update: async (params) => {},
+    update: async (_params) => {},
   };
 };

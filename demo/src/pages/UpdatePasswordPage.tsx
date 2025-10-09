@@ -22,34 +22,22 @@ export const UpdatePasswordPage = () => {
         translate,
       });
     }
-  }
+  };
 
   return (
     <>
       <h1>Update Password</h1>
       <hr />
-      <form
-        onSubmit={handleSubmit}
-      >
+      <form onSubmit={handleSubmit}>
         <label htmlFor="password-input">New Password</label>
-        <input
-          id="password-input"
-          name="password"
-          type="password"
-        />
-        <label htmlFor="confirm-password-input">
-          Confirm New Password
-        </label>
+        <input id="password-input" name="password" type="password" />
+        <label htmlFor="confirm-password-input">Confirm New Password</label>
         <input
           id="confirm-password-input"
           name="confirmPassword"
           type="password"
         />
-        <input
-          type="submit"
-          disabled={isPending}
-          value="Update"
-        />
+        <input type="submit" disabled={isPending} value="Update" />
       </form>
     </>
   );

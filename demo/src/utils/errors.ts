@@ -1,4 +1,5 @@
-import { HttpError } from "@refinedev/core";
+/** biome-ignore-all lint/suspicious/noExplicitAny: that's fine */
+import type { HttpError } from "@refinedev/core";
 
 export const isHttpError = (x: any): x is HttpError =>
   x != null &&
@@ -10,7 +11,7 @@ export const isHttpError = (x: any): x is HttpError =>
 
 export const getHttpErrorField = (
   { errors }: HttpError,
-  fieldName: string
+  fieldName: string,
 ): string | undefined => {
   const field = errors?.[fieldName];
   return typeof field === "string" ? field : undefined;

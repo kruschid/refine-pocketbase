@@ -1,6 +1,6 @@
+import type { ConditionalFilter, LogicalFilter } from "@refinedev/core";
 import test from "tape";
-import { FilterValue, serialize, transformFilter } from "./filters";
-import { ConditionalFilter, LogicalFilter } from "@refinedev/core";
+import { type FilterValue, serialize, transformFilter } from "./filters";
 
 test("value serialization", (t) => {
   [
@@ -11,13 +11,13 @@ test("value serialization", (t) => {
     [new Date(0), "'1970-01-01 00:00:00.000Z'"],
     [null, "null"],
     [{ a: "don't" }, `'{"a":"don\\'t"}'`],
-  ].forEach(([value, output]) =>
+  ].forEach(([value, output]) => {
     t.equals(
       serialize(value),
       output,
-      `should serialize ${value} (${typeof value})`
-    )
-  );
+      `should serialize ${value} (${typeof value})`,
+    );
+  });
   t.end();
 });
 
@@ -25,7 +25,7 @@ test("conditional filters", (t) => {
   Array.from<[ConditionalFilter["operator"], string]>([
     ["and", "&&"],
     ["or", "||"],
-  ]).forEach(([operator, output]) =>
+  ]).forEach(([operator, output]) => {
     t.equals(
       transformFilter([
         {
@@ -45,9 +45,9 @@ test("conditional filters", (t) => {
         },
       ]),
       `((a = 'a') ${output} (b != 'b'))`,
-      `should return conditional filter expression for ${operator}`
-    )
-  );
+      `should return conditional filter expression for ${operator}`,
+    );
+  });
   t.end();
 });
 
@@ -87,7 +87,7 @@ test("logical filters", (t) => {
     ["endswith", "f%", "(a ~ '%f\\%')"],
     ["nendswith", "g", "(a !~ '%g')"],
     ["nendswith", "h%", "(a !~ '%h\\%')"],
-  ]).forEach(([operator, value, output]) =>
+  ]).forEach(([operator, value, output]) => {
     t.equals(
       transformFilter([
         {
@@ -97,9 +97,9 @@ test("logical filters", (t) => {
         },
       ]),
       output,
-      `should return logical filter expression for ${operator}`
-    )
-  );
+      `should return logical filter expression for ${operator}`,
+    );
+  });
 
   t.end();
 });
@@ -140,7 +140,7 @@ test("nested logical filters", (t) => {
     ["endswith", "f%", "((a ~ '%f\\%') && (b = '4'))"],
     ["nendswith", "g", "((a !~ '%g') && (b = '4'))"],
     ["nendswith", "h%", "((a !~ '%h\\%') && (b = '4'))"],
-  ]).forEach(([operator, value, output]) =>
+  ]).forEach(([operator, value, output]) => {
     t.equals(
       transformFilter([
         {
@@ -160,9 +160,9 @@ test("nested logical filters", (t) => {
         },
       ]),
       output,
-      `should return logical filter expression for ${operator}`
-    )
-  );
+      `should return logical filter expression for ${operator}`,
+    );
+  });
 
   t.end();
 });
@@ -207,7 +207,7 @@ test("deeply nested logical filters", (t) => {
     ["endswith", "f%", "(((a ~ '%f\\%') && (b = '4')) || (c > 1))"],
     ["nendswith", "g", "(((a !~ '%g') && (b = '4')) || (c > 1))"],
     ["nendswith", "h%", "(((a !~ '%h\\%') && (b = '4')) || (c > 1))"],
-  ]).forEach(([operator, value, output]) =>
+  ]).forEach(([operator, value, output]) => {
     t.equals(
       transformFilter([
         {
@@ -237,9 +237,9 @@ test("deeply nested logical filters", (t) => {
         },
       ]),
       output,
-      `should return logical filter expression for ${operator}`
-    )
-  );
+      `should return logical filter expression for ${operator}`,
+    );
+  });
 
   t.equals(
     transformFilter([
@@ -275,7 +275,7 @@ test("deeply nested logical filters", (t) => {
       },
     ]),
     "",
-    "deeply nested empty filters should not generate an expression"
+    "deeply nested empty filters should not generate an expression",
   );
 
   t.end();
