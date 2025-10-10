@@ -1,16 +1,12 @@
 {
-  "name": "refine-pocketbase",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "root",
+  "version": "0.0.0",
   "scripts": {
     "lint": "biome check",
     "format": "biome format --write",
     "lintci": "biome ci"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "packageManager": "pnpm@10.13.1",
   "devDependencies": {
     "@biomejs/biome": "^2.2.5"
