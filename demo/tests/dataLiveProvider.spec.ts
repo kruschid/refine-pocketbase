@@ -114,7 +114,7 @@ test.describe("data and live provider", () => {
   test("pagination", async ({ page }) => {
     for (const i of [1, 2]) {
       await page.goto(
-        `/posts?pageSize=1&current=${i}&sorters[0][field]=title&sorters[0][order]=asc`,
+        `/posts?pageSize=1&currentPage=${i}&sorters[0][field]=title&sorters[0][order]=asc`,
       );
       await expect(
         page.locator("tbody > tr:first-child> :nth-child(4)"),
