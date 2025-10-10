@@ -88,9 +88,9 @@ jobs:
       working-directory: lib
       run: |
         if [[ "${{ github.event.release.prerelease }}" == "true" ]]; then
-          pnpm publish --tag dev
+          pnpm publish --no-git-checks --tag dev 
         else
-          pnpm publish
+          pnpm publish --no-git-checks
         fi
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
