@@ -236,13 +236,14 @@ const loginWithPassword = async (
       options.debug?.("unknown error", err);
       throw new Error("unknown error");
     }
-    if (!loginArgs.otpHandler) {
-      throw Error(OTP_HOOK_ERROR);
-    }
 
     const mfaId: string | undefined = err.response.mfaId;
 
     if (mfaId) {
+      if (!loginArgs.otpHandler) {
+        throw Error(OTP_HOOK_ERROR);
+      }
+
       const { otpId } = await pb
         .collection(options.collection)
         .requestOTP(loginArgs.email, loginArgs.otpOptions);
