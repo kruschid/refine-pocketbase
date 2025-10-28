@@ -327,6 +327,32 @@ Please expand the following section to view the corresponding translation keys f
   | `authProvider.updatePassword.errorDescription`   | Something went wrong while updating your password. Please try again later. | `error`   |
 </details>
 
+### Avatar URL
+
+The [`useGetIdentity`](https://refine.dev/docs/authentication/hooks/use-get-identity/) hook returns a user object that includes an avatar thumbnail URL.
+
+```ts
+import { useGetIdentity } from "@refinedev/core";
+
+const { data: identity } = useGetIdentity();
+
+identity.avatar; // ~> http://127.0.0.1:8090/api/files/example/kfzjt5oy8r34hvn/test_52iWbGinWd.png?thumb=100x100
+```
+
+By default, the avatar thumbnail size is **100x100 pixels**.
+You can customize this by setting the `identityAvatarThumb` option in `authOptions` when creating the `authProvider`:
+
+```ts
+const authOptions: AuthOptions = {
+  identityAvatarThumb: "128x128",
+};
+
+authProvider(pb, authOptions);
+```
+
+Avatar URLs follow [PocketBase’s file URL handling](https://pocketbase.io/docs/files-handling/#file-url), since this library uses the PocketBase SDK internally.
+
+
 ## Features
 
 - [x] auth provider

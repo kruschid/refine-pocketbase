@@ -3,6 +3,7 @@ import type PocketBase from "pocketbase";
 import { isClientResponseError, toHttpError } from "../utils";
 import { check } from "./check";
 import { forgotPassword } from "./forgotPassword";
+import { getIdentity } from "./getIdentity";
 import { login } from "./login";
 import { logout } from "./logout";
 import { register } from "./register";
@@ -27,6 +28,7 @@ export interface AuthOptions {
   logoutRedirectTo?: string;
   authenticatedRedirectTo?: string;
   unauthenticatedRedirectTo?: string;
+  identityAvatarThumb?: string;
   debug?: (...args: unknown[]) => void;
 }
 
@@ -56,8 +58,7 @@ export const authProvider = (
     updatePassword: updatePassword(pb, options),
     check: check(pb, options),
     logout: logout(pb, options),
-    getIdentity: async () =>
-      pb.authStore.isValid ? pb.authStore.record : null,
+    getIdentity: getIdentity(pb, options),
     onError: async (error) => ({
       error: isClientResponseError(error) ? toHttpError(error) : error,
     }),
