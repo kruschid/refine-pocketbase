@@ -11,6 +11,8 @@
       "demo/**",
       "lib/**",
       "!demo/pocketbase",
+      "!demo/playwright-report",
+      "!demo/test-results",
       "!**/node_modues",
       "!**/dist",
       "!**/.tsimp"
