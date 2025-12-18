@@ -3,7 +3,7 @@ name: refine-pocketbase-demo
 services:
   pocketbase:
     container_name: refine-pocketbase-demo-pocketbase
-    image: ghcr.io/muchobien/pocketbase:0.30
+    image: ghcr.io/muchobien/pocketbase:0.34.2
     ports:
       - 8090:8090
     volumes:
