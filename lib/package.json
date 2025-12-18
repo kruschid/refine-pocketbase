@@ -21,21 +21,22 @@
   },
   "homepage": "https://github.com/kruschid/refine-pocketbase",
   "scripts": {
-    "test": "node --import=tsimp/import src/test.ts",
-    "build": "npm run test && tsdown"
+    "build": "npm run test && tsdown",
+    "test": "node --import=tsimp/import src/test.ts"
   },
   "engines": {
     "node": ">=20.0.0"
   },
   "license": "MIT",
   "devDependencies": {
-    "@refinedev/core": "^5.0.4",
-    "@types/react": "^19.2.2",
+    "@refinedev/core": "^5.0.7",
+    "@types/react": "^19.2.7",
     "@types/tape": "^5.8.1",
-    "pocketbase": "^0.26.2",
-    "react": "^19.2.0",
+    "pocketbase": "^0.26.5",
+    "react": "^19.2.3",
+    "semantic-release": "^25.0.2",
     "tape": "^5.9.0",
-    "tsdown": "^0.15.6",
+    "tsdown": "^0.18.1",
     "tsimp": "^2.0.12",
     "typescript": "^5.9.3"
   },
@@ -62,5 +63,14 @@
     "src",
     "README.md",
     "LICENSE"
-  ]
+  ],
+  "release": {
+    "branches": [
+      "main",
+      {
+        "name": "dev",
+        "prerelease": true
+      }
+    ]
+  }
 }

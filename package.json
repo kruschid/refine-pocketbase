@@ -4,11 +4,15 @@
   "scripts": {
     "lint": "biome check",
     "format": "biome format --write",
-    "lintci": "biome ci"
+    "lintci": "biome ci",
+    "prepare": "husky"
   },
   "license": "MIT",
   "packageManager": "pnpm@10.13.1",
   "devDependencies": {
-    "@biomejs/biome": "^2.2.5"
+    "@biomejs/biome": "^2.2.5",
+    "@commitlint/cli": "^20.2.0",
+    "@commitlint/config-conventional": "^20.2.0",
+    "husky": "^9.1.7"
   }
 }
