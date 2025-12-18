@@ -298,7 +298,7 @@ const loginWithPassword = async (
             : undefined,
         };
       }
-    } else {
+    } else if (err.status === 400) {
       return {
         success: false,
         error: translate
@@ -317,5 +317,21 @@ const loginWithPassword = async (
       };
     }
   }
-  throw Error("something went wrong");
+
+  return {
+    success: false,
+    error: translate
+      ? {
+          statusCode: 0,
+          name: translate(
+            "authProvider.login.unknownError",
+            "Something went wrong",
+          ),
+          message: translate(
+            "authProvider.login.unknownErrorMessage",
+            "Please try again later.",
+          ),
+        }
+      : undefined,
+  };
 };
