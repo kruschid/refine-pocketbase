@@ -55,7 +55,7 @@ const logicalOperators: Record<
     filter.value
       .map((value) => `${filter.field} != ${serialize(value)}`)
       .join(" && "),
-  ina: undefined,
+  ina: defaultExpression("?="),
   nina: undefined,
   contains: defaultExpression("~"),
   ncontains: defaultExpression("!~"),
